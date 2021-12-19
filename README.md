@@ -1,5 +1,14 @@
+<div align="center">
+  <img src="https://www.planete-energies.com/sites/default/files/styles/media_full_width_940px/public/thumbnails/image/visuel_emissions_co2_small.jpg?itok=Rrh1f3Qy"><br>
+</div>
+
+-----------------
+
+
 # Plat_CO2
 Ce projet est réalisé dans le cadre du cours de python de Lino Galiana 2021-2022.
+
+Il s'agit d'un programme qui permet de renvoyer à l'utilisateur la recette avec l'émission en carbone la plus faible parmi toutes les recettes disponibles sur le site "Marmitton"
 
 
 ## Installation
