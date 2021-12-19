@@ -5,6 +5,9 @@
 # The normalized methods are stored in the dictionnary 'DIST'.
 # Their value is 0 for a perfect match, 1 in the worst case.
 
+import warnings
+
+warnings.filterwarnings("ignore")  # TO FIX
 
 DIST = {}
 
