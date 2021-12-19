@@ -1,4 +1,5 @@
-#Scrapper_Marmiton
+#scrapper marmiton
+import sys
 import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -92,10 +93,10 @@ def create_dictionnaire_recette_ingredients(a):
       value.append('')
     #Pour les unités type fruits/légumes
     if key.find("+")==True:
-      key=key[:key.find("+")]
+      key=key.split("+")[0]
     #Ici utiliser les algo de distance pour savoir si value[1] est ds notre base ou pas
     if key.find("(")==True:
-      key=key[:key.find("(")]
+      key=key.split("(")[0]
     if key.find(" "):
       key=key.split(" ")[0]
     if value[1] in conversion_g_unite:
@@ -166,7 +167,7 @@ def marmitonscrapper(root,nbre_recettes):
       dico_infos_recette["nombre_personne"]=int(nbre_personne.text.split("\n")[0])
       dico_infos_recette["note_fiabilite_recette"]=note_fiabilite
       dico_infos_recette["url_recette"]=url
-      recettes["recette"+str(cpt)]=dico_infos_recette
+      recettes["recette_"+str(cpt+1)]=dico_infos_recette
     except NoSuchElementException:
       pass
     cpt=cpt+1
