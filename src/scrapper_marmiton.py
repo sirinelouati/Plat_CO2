@@ -4,13 +4,17 @@ import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, WebDriverException
 options = webdriver.ChromeOptions()
 options.add_argument('--no-sandbox')
 options.add_argument('--disable-dev-shm-usage')
 options.add_argument('--headless')
 options.add_argument('--user-agent=Mozilla/5.0')
-driver = webdriver.Chrome('chromedriver', options=options)
+try:
+  driver = webdriver.Chrome('chromedriver', options=options)
+except WebDriverException:
+  driver = webdriver.Chrome('/path/to/chromedriver', options=options)
+
 conversion_g_unite={}
 conversion_g_unite['tomate']=130
 conversion_g_unite['tomates']=130
