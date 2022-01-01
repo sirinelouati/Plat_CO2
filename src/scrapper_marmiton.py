@@ -44,7 +44,7 @@ def convert_to_float(frac_str: str) -> float:
 
 
 def find_closest_match(product_name: str, distance: Callable = DIST["fwz"]) -> str:
-    """if a product must be converted and is not in the conversion list, then informs the user and finds the best substitute
+    """returns the closest product to 'product_name' in the conversion list (conversions.py)
 
     Args:
         product_name (str): product missing from the conversion list
