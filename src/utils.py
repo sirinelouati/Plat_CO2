@@ -26,6 +26,7 @@ def clean_string(s: str) -> str:
     s = unidecode(s)  # remove accents
     s = s.lower()  # force lowercase
     s = sub("[^a-z ]", " ", s)  # only keeps letters and spaces
+    s = s.lstrip().rstrip()  # remove leading and ending spaces
     return s
 
 
