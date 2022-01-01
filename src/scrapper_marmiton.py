@@ -1,11 +1,13 @@
+import re
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
-from src.conversions import CONVERSIONS_TO_GRAMS, UNITS_VOLUME
-from src.utils import clean_string
+from src.conversions import CONVERSIONS_TO_GRAMS, CONVERSIONS_TO_ML
+from src.utils import DIST, clean_string
 import time
-from typing import Dict
+from tqdm import tqdm
+from typing import Callable, Dict
 
 
 ###########################
@@ -41,6 +43,23 @@ def convert_to_float(frac_str: str) -> float:
 #############################
 
 
+def find_closest_match(product_name: str, distance: Callable = DIST["per"]) -> str:
+    """returns the closest product to 'product_name' in the conversion list (conversions.py)
+
+    Args:
+        product_name (str): product missing from the conversion list
+        distance (Callable, optional): function that computes a distance between two strings. Its value is 0
+            for a perfect match, 1 in the worst case. Defaults to Levenshtein's distance.
+    Returns:
+        str: the name of the best matching product in the conversion list
+    """
+
+    return min(
+        [convertible for convertible in CONVERSIONS_TO_GRAMS.keys()],
+        key=lambda x: distance(x, product_name),
+    )
+
+
 def make_output(content: str) -> Dict:
     """makes a standard dictionnary from the raw text corresponding to a given recipe
 
@@ -53,6 +72,9 @@ def make_output(content: str) -> Dict:
 
     content = content.split("\n")
     recette = {}
+    missing_convertible = (
+        []
+    )  # stores the ingredients that are missing from our conversion list
 
     for i in range(len(content) // 2):
         key = content[2 * i + 1]
@@ -66,45 +88,56 @@ def make_output(content: str) -> Dict:
             key = key.split("+")[0].split("(")[0]
 
         value = content[2 * i].split("  ")
-        value = value[0].split()
-        if value == "":  # we decide to ignore the ingredients without a quantity
-            pass
-        else:
-            value[0] = convert_to_float(value[0])
-            if len(value) == 1:  # for ingredients without unit (eg : 3 apples)
-                value.append("")
+        raw_quantity = re.match(
+            r"(?P<quantity>[\d /⁄.,]*)? ?(?P<unit>.*)?", value[0]
+        ).groupdict()  # handles pathologic cases such as "3 1/2 boîtes moyennes"
+        quantity = raw_quantity["quantity"]
+        unit = raw_quantity["unit"]
 
-            clean_value_1 = clean_string(value[1])
-            clean_key = clean_string(key)
-            if clean_value_1 in CONVERSIONS_TO_GRAMS:
-                value[0] = CONVERSIONS_TO_GRAMS[clean_value_1] * value[0]
-                value[1] = "g"
-            elif clean_value_1 in UNITS_VOLUME:
-                if clean_key in CONVERSIONS_TO_GRAMS:
-                    value[0] = (
-                        CONVERSIONS_TO_GRAMS[clean_key] * UNITS_VOLUME[clean_value_1]
-                    )
-                    value[1] = "g"
-                else:
-                    raise Exception(
-                        f"A new item has been detected : {key} must be added to the conversion list."
-                    )
-            elif clean_value_1 == "":
-                if clean_key in CONVERSIONS_TO_GRAMS:
-                    value[0] = CONVERSIONS_TO_GRAMS[clean_key] * value[0]
-                    value[1] = "g"
-                else:
-                    raise Exception(
-                        f"A new item has been detected : {key} must be added to the conversion list."
-                    )
-            if value[1] == "g":
-                recette[key] = value
-            else:
-                raise Exception(
-                    f"A new item has been detected : {value[1]} must be added to the conversion list."
+        if not quantity:  # if no quantity is specified, we set its value at 1
+            quantity = "1"
+
+        quantity = convert_to_float(quantity)
+        unit = clean_string(unit)
+        product = clean_string(key)
+
+        if unit in CONVERSIONS_TO_GRAMS:  # eg : "3 pincées de sel"
+            quantity = CONVERSIONS_TO_GRAMS[unit] * quantity
+            unit = "g"
+        elif unit in CONVERSIONS_TO_ML:  # eg : "5 cl d'huile"
+            if product in CONVERSIONS_TO_GRAMS:
+                quantity = (
+                    CONVERSIONS_TO_GRAMS[product] * CONVERSIONS_TO_ML[unit]
+                ) * quantity
+                unit = "g"
+            else:  # eg : "5 cl d'huile d'olive de la marque Lorem Ipsum"
+                closest_match = find_closest_match(product)
+                quantity = (
+                    CONVERSIONS_TO_GRAMS[closest_match]
+                    * CONVERSIONS_TO_ML[unit]
+                    * quantity
                 )
+                unit = "g"
+                missing_convertible.append((product, closest_match))
+        elif unit == "":  # eg : "5 pommes"
+            if product in CONVERSIONS_TO_GRAMS:
+                quantity = CONVERSIONS_TO_GRAMS[product] * quantity
+                unit = "g"
+            else:  # eg : "5 pommes de la variété Lorem Ipsum"
+                closest_match = find_closest_match(product)
+                quantity = CONVERSIONS_TO_GRAMS[closest_match] * quantity
+                unit = "g"
+                missing_convertible.append((key, closest_match))
+        if unit == "g":  # eg : "10 g de sucre"
+            recette[key] = quantity
+        else:  # for unhandled cases such as "1 boîte de compote"
+            print(
+                "\r"
+                + f"[INFO] Cannot convert an ingredient to grams : ({key}, {raw_quantity}).                             \n"
+            )
+            return None
 
-    return recette
+    return (recette, missing_convertible)
 
 
 #############################
@@ -132,12 +165,14 @@ def marmiton_scrapper(recipe_name: str, n: int) -> Dict:
 
     try:
         driver = webdriver.Chrome(
-            "chromedriver", options=options
-        )  # for Google Collaboratory or Windows
+            "/usr/lib/chromium-browser/chromedriver", options=options
+        )  # for Linux or MacOS
     except WebDriverException:
         driver = webdriver.Chrome(
-            "/path/to/chromedriver", options=options
-        )  # for Linux or MacOS
+            "chromedriver", options=options
+        )  # for Google Collaboratory or Windows
+
+    print("\nStarting to scrap Marmiton... (please wait about 10 seconds)\n")
 
     recipes = {}
     driver.get("https://www.marmiton.org/")
@@ -150,10 +185,14 @@ def marmiton_scrapper(recipe_name: str, n: int) -> Dict:
     except NoSuchElementException:
         pass
 
+    print("Cookies handled !\n")
+
     search_bar = driver.find_element(By.TAG_NAME, "input")
     search_bar.send_keys(recipe_name)
     search_bar.send_keys(Keys.RETURN)
     time.sleep(1)
+
+    print(f"Collecting results for '{recipe_name}'...\n")
 
     links_list = (
         [  # list of the links of all the recipes from the first page of results
@@ -161,8 +200,12 @@ def marmiton_scrapper(recipe_name: str, n: int) -> Dict:
         ]
     )
 
+    missing_convertible = []
+
     i = 0
-    while i < min(n, len(links_list)):
+    for i in tqdm(
+        range(min(n, len(links_list))), ncols=100
+    ):  # tqdm handles the loading bar
 
         url = links_list[i]
 
@@ -201,15 +244,34 @@ def marmiton_scrapper(recipe_name: str, n: int) -> Dict:
 
             # Create standard output
             recipe_dict = {}
-            recipe_dict["ingredients"] = make_output(recipe.text)
+            current_output = make_output(recipe.text)
+            if current_output is None:  # conversion aborted
+                n += 1
+                continue
+            recipe_dict["ingredients"], new_missing_convertible = current_output
             recipe_dict["nb_people"] = int(nb_people.text.split("\n")[0])
             recipe_dict["score"] = note_fiabilite
             recipe_dict["url"] = url
             recipes[driver.find_element(By.TAG_NAME, "h1").text] = recipe_dict
 
+            missing_convertible += new_missing_convertible
+
         except NoSuchElementException:
             pass
 
         i += 1
+
+    if missing_convertible:
+        print(
+            "\nThe following ingredients were missing from the conversion list (conversions.py) :"
+        )
+        for (missing, matching) in missing_convertible:
+            print(f"    ---> '{missing}' was remplaced by '{matching}'")
+        print(
+            "\nThese ingredients shall be added to the conversion list to be properly processed in the future.\n"
+        )
+
+    driver.close()
+    print("Marmiton's data is extracted !\n")
 
     return recipes

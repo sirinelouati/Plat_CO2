@@ -13,7 +13,7 @@ from re import sub
 
 def clean_string(s: str) -> str:
     """Cleans up the string s to enhance the matching.
-    Stemming and lemmatization are not implemented because they would reduce the matching
+    Lemmatization is not implemented because it would reduce the matching
     performance.
 
     Args:
@@ -27,6 +27,10 @@ def clean_string(s: str) -> str:
     s = s.lower()  # force lowercase
     s = sub("[^a-z ]", " ", s)  # only keeps letters and spaces
     s = s.lstrip().rstrip()  # remove leading and ending spaces
+    from nltk.stem.snowball import FrenchStemmer
+
+    s = " ".join(FrenchStemmer().stem(s) for s in s.split())  # stemming
+
     return s
 
 
@@ -62,3 +66,37 @@ DIST["fwz"] = lambda a, b: 1 - partial_ratio(a, b) / 100
 from nltk import edit_distance
 
 DIST["lev"] = lambda a, b: edit_distance(a, b) / max(len(a), len(b))
+
+
+# Personalized distance (per)
+# This distance is specially designed to compare ingredients
+
+
+def personalized_distance(a: str, b: str) -> float:
+
+    if a == b:
+        return 0.0
+
+    la, lb = len(a), len(b)
+    if la > lb:  # let a be the shortest string
+        la, lb, a, b = lb, la, b, a
+
+    if b.startswith(a):
+        return 0.2 - 0.2 * la / lb
+    a_split = a.split()
+    if b.startswith(a_split[0]):
+        common_start = a_split[0]
+        i = 1
+        while i < len(a_split) and b.startswith(common_start):
+            common_start += a_split[i]
+            i += 1
+        return 0.4 - 0.2 * len(common_start) / la
+    elif a in b:
+        return 0.6 - 0.2 * b.find(a) / lb
+    elif a_split[0] in b:
+        return 0.6 + 0.2 * DIST["gpm"](a, b)
+    else:
+        return 0.8 + 0.2 * DIST["lev"](a, b)
+
+
+DIST["per"] = personalized_distance

@@ -34,6 +34,9 @@ def import_data_from_agribalyse(replace: bool = False) -> pd.DataFrame:
         df = pd.read_csv(PATH_TO_DATA)
 
     else:  # case 2 : the file doesn't exist yet OR replace is True
+
+        print("Loading data from agribalyse...\n")
+
         df = pd.read_csv(AGRIBALYSE_DATA_URL)
         df = df[
             [
@@ -66,7 +69,12 @@ def import_data_from_agribalyse(replace: bool = False) -> pd.DataFrame:
                 "Changement climatique (kg CO2 eq/kg de produit) - Consommation": "consumption_co2",
             }
         )
+
+        df["clean_name_prod"] = df.apply(lambda x: clean_string(x.name_prod), axis=1)
+
         df.to_csv(PATH_TO_DATA, index=False)
+
+        print("Data is loaded !")
 
     return df
 
@@ -79,7 +87,7 @@ def import_data_from_agribalyse(replace: bool = False) -> pd.DataFrame:
 def match_products(
     product_name: str,
     products_data: pd.DataFrame = None,
-    distance: Callable = DIST["lev"],
+    distance: Callable = DIST["per"],
     n: Optional[int] = 1,
 ) -> pd.DataFrame:
     """Returns the 'n' closest products to 'product_name' in 'products_data' according to the
@@ -101,10 +109,6 @@ def match_products(
 
     if products_data is None:
         products_data = import_data_from_agribalyse()
-
-    products_data["clean_name_prod"] = products_data.apply(
-        lambda x: clean_string(x.name_prod), axis=1
-    )
 
     clean_product_name = clean_string(product_name)
 
@@ -161,7 +165,7 @@ def compare_methods(
 def compute_emissions(
     product_name: str,
     products_data: pd.DataFrame = None,
-    distance: Callable = DIST["lev"],
+    distance: Callable = DIST["per"],
 ) -> pd.DataFrame:
     """Computes estimated emission figures for a given product name.
 
@@ -180,5 +184,6 @@ def compute_emissions(
         product_name, products_data=products_data, distance=distance, n=1
     ).rename(columns={"distance": "uncertainty"})
 
+    results["agribalyse_match"] = results["name_prod"]
     results["name_prod"] = product_name
     return results
