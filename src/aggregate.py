@@ -3,6 +3,15 @@ from src.food2emissions import compute_emissions, import_data_from_agribalyse
 from src.utils import DIST
 from typing import Callable, Dict, Tuple
 
+EMISSION_TYPES = [
+    "agriculture_co2",
+    "transformation_co2",
+    "packaging_co2",
+    "transport_co2",
+    "distribution_co2",
+    "consumption_co2",
+]
+
 pd.options.mode.chained_assignment = (  # prevents pandas from sending seemingly useless warning messages
     None
 )
@@ -126,9 +135,13 @@ def compute_recipes_figures(recipes: Dict, distance: Callable = DIST["per"]) -> 
         .rename(columns={"name_prod_x": "product"})
     )
 
+    # compute an single uncertainty value for each ingredient
+
     ingredients_figures["uncertainty"] = (
         ingredients_figures["distance"] / 2 + (ingredients_figures["dqr"] - 1) / 8
     )
+
+    # normalize the weight for 1 person
 
     for recipe_name, recipe in recipes.items():
         for ingredient, weight in recipe["ingredients"].items():
@@ -137,11 +150,18 @@ def compute_recipes_figures(recipes: Dict, distance: Callable = DIST["per"]) -> 
             )
             recipes[recipe_name]["nb_people"] = 1
 
-    recipes_figures = pd.DataFrame()
+    emissions_figures = pd.DataFrame()
+    uncertainty_figures = pd.DataFrame()
 
-    for recipe_name, recipe in recipes.items():
+    for (
+        recipe_name,
+        recipe,
+    ) in recipes.items():  # might be optimized (but not too slow anyway...)
 
         emission_denominator = 0
+        uncertainty_denominators = {
+            emission_type: 0 for emission_type in EMISSION_TYPES
+        }
 
         for ingredient, weight in recipe["ingredients"].items():
             emission_denominator += (
@@ -150,24 +170,38 @@ def compute_recipes_figures(recipes: Dict, distance: Callable = DIST["per"]) -> 
                     ingredients_figures["product"] == ingredient
                 ].iloc[0]["uncertainty"]
             )
+            for emission_type in EMISSION_TYPES:
+                uncertainty_denominators[emission_type] += (
+                    weight
+                    * ingredients_figures[
+                        ingredients_figures["product"] == ingredient
+                    ].iloc[0][emission_type]
+                )
 
         recipe_emissions = {"recipe": recipe_name}
-        for emission_type in ingredients_figures:
-            if emission_type.endswith("co2"):
-                emission = 0
-                for ingredient, weight in recipe["ingredients"].items():
-                    emission += (
-                        weight
-                        * ingredients_figures[
-                            ingredients_figures["product"] == ingredient
-                        ].iloc[0]["uncertainty"]
-                        * ingredients_figures[
-                            ingredients_figures["product"] == ingredient
-                        ].iloc[0][emission_type]
-                    )
-                emission /= emission_denominator
-                recipe_emissions[emission_type] = emission
+        recipe_uncertainty = {"recipe": recipe_name}
+        for emission_type in EMISSION_TYPES:
+            numerator = 0
+            for ingredient, weight in recipe["ingredients"].items():
+                numerator += (
+                    weight
+                    * ingredients_figures[
+                        ingredients_figures["product"] == ingredient
+                    ].iloc[0]["uncertainty"]
+                    * ingredients_figures[
+                        ingredients_figures["product"] == ingredient
+                    ].iloc[0][emission_type]
+                )
+            recipe_uncertainty[emission_type] = (
+                numerator / uncertainty_denominators[emission_type]
+            )
+            recipe_emissions[emission_type] = numerator / emission_denominator
 
-        recipes_figures = recipes_figures.append(recipe_emissions, ignore_index=True)
+        emissions_figures = emissions_figures.append(
+            recipe_emissions, ignore_index=True
+        )
+        uncertainty_figures = uncertainty_figures.append(
+            recipe_uncertainty, ignore_index=True
+        )
 
-    print(recipes_figures)
+    return (emissions_figures, uncertainty_figures)
