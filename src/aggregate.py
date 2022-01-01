@@ -1,11 +1,16 @@
 import pandas as pd
-from src.food2emissions import compute_emissions
+from src.food2emissions import compute_emissions, import_data_from_agribalyse
 from src.utils import DIST
 from typing import Callable, Dict, Tuple
 
 pd.options.mode.chained_assignment = (  # prevents pandas from sending seemingly useless warning messages
     None
 )
+
+
+#########################################################
+### COMPARE THE RECIPES TO BEST MATCH THE INGREDIENTS ###
+#########################################################
 
 
 def match_all_ingredients(
@@ -80,7 +85,9 @@ def match_all_ingredients(
     )
 
     # keeps an ingredient, or replaces it by the closest one
-    (ing_agg["best"], ing_agg["agribalyse_match"], ing_agg["best_distance"]) = zip(
+    output = pd.DataFrame()
+
+    (output["name_prod"], output["agribalyse_match"], output["distance"]) = zip(
         *pd.Series(
             ing_agg.apply(
                 lambda x: (x["name_prod"], x["agribalyse_match"], x["uncertainty"])
@@ -89,7 +96,7 @@ def match_all_ingredients(
                     or x["uncertainty"] < x["closest_uncertainty"]
                 )
                 else (
-                    x["closest"],
+                    x["name_prod"],
                     x["closest_agribalyse_match"],
                     max(x["closest_uncertainty"], x["distance_to_closest"]),
                 ),
@@ -98,4 +105,46 @@ def match_all_ingredients(
         )
     )
 
-    return ing_agg
+    return output
+
+
+######################################################
+### COMPUTE THE AGGREGATED FIGURES FOR EACH RECIPE ###
+######################################################
+
+
+def compute_recipes_figures(recipes : Dict, distance : Callable = DIST["per"]) -> Tuple:
+    
+    products_data = import_data_from_agribalyse()
+    ingredients = match_all_ingredients(recipes=recipes, distance=distance)
+
+    ingredients_figures = ingredients.merge(products_data, left_on="agribalyse_match", right_on="name_prod", how="left").drop(['agribalyse_match', "name_prod_y", "clean_name_prod"], axis=1).rename(columns={"name_prod_x":"product"})
+
+    ingredients_figures["uncertainty"] = ingredients_figures["distance"] / 2 + (ingredients_figures["dqr"] - 1) / 8
+
+    for recipe_name, recipe in recipes.items():
+        for ingredient, weight in recipe["ingredients"].items():
+            recipes[recipe_name]["ingredients"][ingredient] = weight / recipe["nb_people"]
+            recipes[recipe_name]["nb_people"] = 1
+
+    recipes_figures = pd.DataFrame()
+
+    for recipe_name, recipe in recipes.items():
+
+        emission_denominator = 0
+
+        for ingredient, weight in recipe['ingredients'].items():
+            emission_denominator += weight * ingredients_figures[ingredients_figures["product"] == ingredient].iloc[0]["uncertainty"]
+        
+        recipe_emissions = {"recipe": recipe_name}
+        for emission_type in ingredients_figures:
+            if emission_type.endswith("co2"):
+                emission = 0
+                for ingredient, weight in recipe['ingredients'].items():
+                    emission += weight * ingredients_figures[ingredients_figures["product"] == ingredient].iloc[0]["uncertainty"] * ingredients_figures[ingredients_figures["product"] == ingredient].iloc[0][emission_type]
+                emission /= emission_denominator
+                recipe_emissions[emission_type] = emission
+        
+        recipes_figures = recipes_figures.append(recipe_emissions, ignore_index=True)
+    
+    print(recipes_figures)

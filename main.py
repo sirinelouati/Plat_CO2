@@ -1,4 +1,3 @@
-from re import match
 from src.food2emissions import (
     import_data_from_agribalyse,
     match_products,
@@ -6,8 +5,9 @@ from src.food2emissions import (
     compute_emissions,
 )
 from src.dummy import dummy_output1
-from src.aggregate import match_all_ingredients
+from src.aggregate import match_all_ingredients, compute_recipes_figures
 from src.scrapper_marmiton import marmiton_scrapper
+from src.utils import DIST
 
 
 def demo_food2emissions():
@@ -21,7 +21,7 @@ def demo_food2emissions():
     print(compute_emissions("Sucre blanc", products_data=products_data))
     print("\n\n\n")
     print(
-        "Here are the matching results using 3 different methods to compute string distances, tested on 3 differents products : 'Sucre blanc', 'steach haché', 'lait de soja'.\n"
+        "Here are the matching results using 4 different methods to compute string distances, tested on 3 differents products : 'Sucre blanc', 'steach haché', 'lait de soja'.\n"
     )
     compare_methods(
         ["Sucre blanc", "steak haché", "lait de soja"],
@@ -30,24 +30,22 @@ def demo_food2emissions():
     )
 
 
-def demo_aggregate():
+def demo_aggregate_1():
+
     print(
-        match_all_ingredients(dummy_output1)[
-            [
-                "name_prod",
-                "agribalyse_match",
-                "closest",
-                "closest_agribalyse_match",
-                "best",
-            ]
-        ]
+        match_all_ingredients(
+            dummy_output1,
+        )
     )
 
+def demo_aggregate_2():
+    print(compute_recipes_figures(dummy_output1))
 
 def demo_scrapper():
-    print(marmiton_scrapper("tarte aux pommes", 2))
+    # print(marmiton_scrapper("tarte aux pommes", 4))
+    print(marmiton_scrapper("gâteau au chocolat", 4))
 
 
 if __name__ == "__main__":
 
-    demo_aggregate()
+    demo_aggregate_2()
