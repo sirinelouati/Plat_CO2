@@ -5,10 +5,14 @@ from src.food2emissions import (
     compute_emissions,
 )
 
+from src.scrapper_marmiton import marmiton_scrapper
+
+print(marmiton_scrapper("tarte aux pommes", 2))
+
 
 if __name__ == "__main__":
 
-    products_data = import_data_from_agribalyse()
+    """products_data = import_data_from_agribalyse()
 
     print(
         "Here are the 5 products from Agribalyse that are closest to 'Sucre blanc'.\n"
@@ -32,4 +36,4 @@ if __name__ == "__main__":
         ["Sucre blanc", "steak haché", "lait de soja"],
         products_data=products_data,
         n=3,
-    )
+    )"""

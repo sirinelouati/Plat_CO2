@@ -1,13 +1,41 @@
+import warnings
+
+warnings.filterwarnings("ignore")  # TO FIX
+
+
+#######################
+### STRING CLEANING ###
+#######################
+
+from unidecode import unidecode
+from re import sub
+
+
+def clean_string(s: str) -> str:
+    """Cleans up the string s to enhance the matching.
+    Stemming and lemmatization are not implemented because they would reduce the matching
+    performance.
+
+    Args:
+        s (str): string to clean up
+
+    Returns:
+        str: string cleaned up
+    """
+
+    s = unidecode(s)  # remove accents
+    s = s.lower()  # force lowercase
+    s = sub("[^a-z ]", " ", s)  # only keeps letters and spaces
+    s = s.lstrip().rstrip()  # remove leading and ending spaces
+    return s
+
+
 ###############################
 ### STRING DISTANCE METHODS ###
 ###############################
 
 # The normalized methods are stored in the dictionnary 'DIST'.
 # Their value is 0 for a perfect match, 1 in the worst case.
-
-import warnings
-
-warnings.filterwarnings("ignore")  # TO FIX
 
 DIST = {}
 

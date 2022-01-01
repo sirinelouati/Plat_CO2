@@ -1,9 +1,7 @@
-from src.distances import DIST
+from src.utils import clean_string, DIST
 from os.path import isfile
 import pandas as pd
-from re import sub
 from typing import Callable, Dict, List, Optional
-from unidecode import unidecode
 
 
 ###################
@@ -76,24 +74,6 @@ def import_data_from_agribalyse(replace: bool = False) -> pd.DataFrame:
 ################
 ### MATCHING ###
 ################
-
-
-def clean_string(s: str) -> str:
-    """Cleans up the string s to enhance the matching.
-    Stemming and lemmatization are not implemented because they would reduce the matching
-    performance.
-
-    Args:
-        s (str): string to clean up
-
-    Returns:
-        str: string cleaned up
-    """
-
-    s = unidecode(s)  # remove accents
-    s = s.lower()  # force lowercase
-    s = sub("[^a-z ]", " ", s)  # only keeps letters and spaces
-    return s
 
 
 def match_products(
