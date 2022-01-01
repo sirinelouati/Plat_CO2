@@ -94,10 +94,8 @@ def make_output(content: str) -> Dict:
         quantity = raw_quantity["quantity"]
         unit = raw_quantity["unit"]
 
-        if not (
-            quantity or unit
-        ):  # if no quantity nor unit is specified, we suppose the product is countable and the quantity is 1
-            quantity, unit = "1", ""
+        if not quantity:  # if no quantity is specified, we set its value at 1
+            quantity = "1"
 
         quantity = convert_to_float(quantity)
         unit = clean_string(unit)
@@ -129,12 +127,13 @@ def make_output(content: str) -> Dict:
                 closest_match = find_closest_match(product)
                 quantity = CONVERSIONS_TO_GRAMS[closest_match] * quantity
                 unit = "g"
-                missing_convertible.append((product, closest_match))
+                missing_convertible.append((key, closest_match))
         if unit == "g":  # eg : "10 g de sucre"
             recette[key] = quantity
         else:  # for unhandled cases such as "1 boîte de compote"
             print(
-                f"\n\n[INFO] Cannot convert an ingredient to grams : ({key}, {raw_quantity}).\n\n"
+                "\r"
+                + f"[INFO] Cannot convert an ingredient to grams : ({key}, {raw_quantity}).                             \n"
             )
             return None
 
@@ -166,12 +165,14 @@ def marmiton_scrapper(recipe_name: str, n: int) -> Dict:
 
     try:
         driver = webdriver.Chrome(
-            "chromedriver", options=options
-        )  # for Google Collaboratory or Windows
+            "/usr/lib/chromium-browser/chromedriver", options=options
+        )  # for Linux or MacOS
     except WebDriverException:
         driver = webdriver.Chrome(
-            "/path/to/chromedriver", options=options
-        )  # for Linux or MacOS
+            "chromedriver", options=options
+        )  # for Google Collaboratory or Windows
+
+    print("\nStarting to scrap Marmiton... (please wait about 10 seconds)\n")
 
     recipes = {}
     driver.get("https://www.marmiton.org/")
@@ -184,12 +185,14 @@ def marmiton_scrapper(recipe_name: str, n: int) -> Dict:
     except NoSuchElementException:
         pass
 
+    print("Cookies handled !\n")
+
     search_bar = driver.find_element(By.TAG_NAME, "input")
     search_bar.send_keys(recipe_name)
     search_bar.send_keys(Keys.RETURN)
     time.sleep(1)
 
-    print(f"Getting results for '{recipe_name}'.")
+    print(f"Collecting results for '{recipe_name}'...\n")
 
     links_list = (
         [  # list of the links of all the recipes from the first page of results
@@ -265,7 +268,10 @@ def marmiton_scrapper(recipe_name: str, n: int) -> Dict:
         for (missing, matching) in missing_convertible:
             print(f"    ---> '{missing}' was remplaced by '{matching}'")
         print(
-            "These ingredients shall be added to the conversion list to be properly processed in the future.\n"
+            "\nThese ingredients shall be added to the conversion list to be properly processed in the future.\n"
         )
+
+    driver.close()
+    print("Marmiton's data is extracted !\n")
 
     return recipes

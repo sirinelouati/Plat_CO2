@@ -29,7 +29,7 @@ def clean_string(s: str) -> str:
     s = s.lstrip().rstrip()  # remove leading and ending spaces
     from nltk.stem.snowball import FrenchStemmer
 
-    s = FrenchStemmer().stem(s)  # stemming
+    s = " ".join(FrenchStemmer().stem(s) for s in s.split())  # stemming
 
     return s
 

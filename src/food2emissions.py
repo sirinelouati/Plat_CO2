@@ -34,6 +34,9 @@ def import_data_from_agribalyse(replace: bool = False) -> pd.DataFrame:
         df = pd.read_csv(PATH_TO_DATA)
 
     else:  # case 2 : the file doesn't exist yet OR replace is True
+
+        print("Loading data from agribalyse...\n")
+
         df = pd.read_csv(AGRIBALYSE_DATA_URL)
         df = df[
             [
@@ -70,6 +73,8 @@ def import_data_from_agribalyse(replace: bool = False) -> pd.DataFrame:
         df["clean_name_prod"] = df.apply(lambda x: clean_string(x.name_prod), axis=1)
 
         df.to_csv(PATH_TO_DATA, index=False)
+
+        print("Data is loaded !")
 
     return df
 

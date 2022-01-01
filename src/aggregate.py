@@ -1,6 +1,7 @@
 import pandas as pd
 from src.food2emissions import compute_emissions, import_data_from_agribalyse
 from src.utils import DIST
+from tqdm import tqdm
 from typing import Callable, Dict, Tuple
 
 EMISSION_TYPES = [
@@ -49,7 +50,8 @@ def match_all_ingredients(
 
     # compute the emissions figures for each of them
     ing_data = compute_emissions(ing_all[0], distance=distance)
-    for ing in ing_all[1:]:
+    print("\nProcessing ingredients...\n")
+    for ing in tqdm(ing_all[1:], ncols=100):
         ing_data = ing_data.append(
             compute_emissions(ing, distance=distance), ignore_index=True
         )
@@ -153,10 +155,10 @@ def compute_recipes_figures(recipes: Dict, distance: Callable = DIST["per"]) -> 
     emissions_figures = pd.DataFrame()
     uncertainty_figures = pd.DataFrame()
 
-    for (
-        recipe_name,
-        recipe,
-    ) in recipes.items():  # might be optimized (but not too slow anyway...)
+    print("\nProcessing recipes...\n")
+    for (recipe_name, recipe,) in tqdm(
+        recipes.items(), ncols=100
+    ):  # might be optimized (but not too slow anyway...)
 
         emission_denominator = 0
         uncertainty_denominators = {

@@ -40,7 +40,25 @@ def demo_aggregate_1():
 
 
 def demo_aggregate_2():
-    print(compute_recipes_figures(dummy_output1))
+    emissions, uncertainties = compute_recipes_figures(
+        marmiton_scrapper("gâteau au chocolat", 6)
+    )
+    print(
+        """\n
+    #################
+    ### EMISSIONS ###
+    #################
+    """
+    )
+    print(emissions)
+    print(
+        """\n
+    #####################
+    ### UNCERTAINTIES ###
+    #####################
+    """
+    )
+    print(uncertainties)
 
 
 def demo_scrapper():
