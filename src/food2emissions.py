@@ -180,5 +180,6 @@ def compute_emissions(
         product_name, products_data=products_data, distance=distance, n=1
     ).rename(columns={"distance": "uncertainty"})
 
+    results["agribalyse_match"] = results["name_prod"]
     results["name_prod"] = product_name
     return results
