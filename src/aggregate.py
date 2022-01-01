@@ -36,7 +36,9 @@ def match_all_ingredients(
     # compute the emissions figures for each of them
     ing_data = compute_emissions(ing_all[0], distance=distance)
     for ing in ing_all[1:]:
-        ing_data = ing_data.append(compute_emissions(ing, distance=distance), ignore_index=True)
+        ing_data = ing_data.append(
+            compute_emissions(ing, distance=distance), ignore_index=True
+        )
 
     ing_agg = ing_data[["name_prod", "uncertainty", "agribalyse_match"]]
 
@@ -84,9 +86,13 @@ def match_all_ingredients(
                 lambda x: (x["name_prod"], x["agribalyse_match"], x["uncertainty"])
                 if (
                     x["uncertainty"] < x["distance_to_closest"]
-                    or x["uncertainty"] < x["closest_uncertainty"]
+                    and x["uncertainty"] < x["closest_uncertainty"]
                 )
-                else (x["closest"], x["closest_agribalyse_match"], x["closest_uncertainty"]),
+                else (
+                    x["closest"],
+                    x["closest_agribalyse_match"],
+                    x["closest_uncertainty"],
+                ),
                 axis=1,
             )
         )
