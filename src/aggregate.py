@@ -204,4 +204,15 @@ def compute_recipes_figures(recipes: Dict, distance: Callable = DIST["per"]) -> 
             recipe_uncertainty, ignore_index=True
         )
 
+    emissions_figures["total"] = emissions_figures[EMISSION_TYPES].sum(axis=1)
+
+    prod_figures = pd.DataFrame()
+    for emission_type in EMISSION_TYPES:
+        prod_figures[emission_type] = (
+            emissions_figures[emission_type]
+            * uncertainty_figures[emission_type]
+            / emissions_figures["total"]
+        )
+    uncertainty_figures["weighted_average"] = prod_figures[EMISSION_TYPES].sum(axis=1)
+
     return (emissions_figures, uncertainty_figures)
