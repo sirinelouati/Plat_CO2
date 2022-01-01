@@ -86,12 +86,12 @@ def match_all_ingredients(
                 lambda x: (x["name_prod"], x["agribalyse_match"], x["uncertainty"])
                 if (
                     x["uncertainty"] < x["distance_to_closest"]
-                    and x["uncertainty"] < x["closest_uncertainty"]
+                    or x["uncertainty"] < x["closest_uncertainty"]
                 )
                 else (
                     x["closest"],
                     x["closest_agribalyse_match"],
-                    x["closest_uncertainty"],
+                    max(x["closest_uncertainty"], x["distance_to_closest"]),
                 ),
                 axis=1,
             )
