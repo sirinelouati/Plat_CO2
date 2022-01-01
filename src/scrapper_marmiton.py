@@ -76,8 +76,6 @@ def make_output(content: str) -> Dict:
         []
     )  # stores the ingredients that are missing from our conversion list
 
-
-
     for i in range(len(content) // 2):
         key = content[2 * i + 1]
         if key.startswith("de "):

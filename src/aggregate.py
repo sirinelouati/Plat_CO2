@@ -113,18 +113,28 @@ def match_all_ingredients(
 ######################################################
 
 
-def compute_recipes_figures(recipes : Dict, distance : Callable = DIST["per"]) -> Tuple:
-    
+def compute_recipes_figures(recipes: Dict, distance: Callable = DIST["per"]) -> Tuple:
+
     products_data = import_data_from_agribalyse()
     ingredients = match_all_ingredients(recipes=recipes, distance=distance)
 
-    ingredients_figures = ingredients.merge(products_data, left_on="agribalyse_match", right_on="name_prod", how="left").drop(['agribalyse_match', "name_prod_y", "clean_name_prod"], axis=1).rename(columns={"name_prod_x":"product"})
+    ingredients_figures = (
+        ingredients.merge(
+            products_data, left_on="agribalyse_match", right_on="name_prod", how="left"
+        )
+        .drop(["agribalyse_match", "name_prod_y", "clean_name_prod"], axis=1)
+        .rename(columns={"name_prod_x": "product"})
+    )
 
-    ingredients_figures["uncertainty"] = ingredients_figures["distance"] / 2 + (ingredients_figures["dqr"] - 1) / 8
+    ingredients_figures["uncertainty"] = (
+        ingredients_figures["distance"] / 2 + (ingredients_figures["dqr"] - 1) / 8
+    )
 
     for recipe_name, recipe in recipes.items():
         for ingredient, weight in recipe["ingredients"].items():
-            recipes[recipe_name]["ingredients"][ingredient] = weight / recipe["nb_people"]
+            recipes[recipe_name]["ingredients"][ingredient] = (
+                weight / recipe["nb_people"]
+            )
             recipes[recipe_name]["nb_people"] = 1
 
     recipes_figures = pd.DataFrame()
@@ -133,18 +143,31 @@ def compute_recipes_figures(recipes : Dict, distance : Callable = DIST["per"]) -
 
         emission_denominator = 0
 
-        for ingredient, weight in recipe['ingredients'].items():
-            emission_denominator += weight * ingredients_figures[ingredients_figures["product"] == ingredient].iloc[0]["uncertainty"]
-        
+        for ingredient, weight in recipe["ingredients"].items():
+            emission_denominator += (
+                weight
+                * ingredients_figures[
+                    ingredients_figures["product"] == ingredient
+                ].iloc[0]["uncertainty"]
+            )
+
         recipe_emissions = {"recipe": recipe_name}
         for emission_type in ingredients_figures:
             if emission_type.endswith("co2"):
                 emission = 0
-                for ingredient, weight in recipe['ingredients'].items():
-                    emission += weight * ingredients_figures[ingredients_figures["product"] == ingredient].iloc[0]["uncertainty"] * ingredients_figures[ingredients_figures["product"] == ingredient].iloc[0][emission_type]
+                for ingredient, weight in recipe["ingredients"].items():
+                    emission += (
+                        weight
+                        * ingredients_figures[
+                            ingredients_figures["product"] == ingredient
+                        ].iloc[0]["uncertainty"]
+                        * ingredients_figures[
+                            ingredients_figures["product"] == ingredient
+                        ].iloc[0][emission_type]
+                    )
                 emission /= emission_denominator
                 recipe_emissions[emission_type] = emission
-        
+
         recipes_figures = recipes_figures.append(recipe_emissions, ignore_index=True)
-    
+
     print(recipes_figures)

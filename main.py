@@ -38,8 +38,10 @@ def demo_aggregate_1():
         )
     )
 
+
 def demo_aggregate_2():
     print(compute_recipes_figures(dummy_output1))
+
 
 def demo_scrapper():
     # print(marmiton_scrapper("tarte aux pommes", 4))

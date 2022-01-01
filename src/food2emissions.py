@@ -67,9 +67,7 @@ def import_data_from_agribalyse(replace: bool = False) -> pd.DataFrame:
             }
         )
 
-        df["clean_name_prod"] = df.apply(
-            lambda x: clean_string(x.name_prod), axis=1
-        )
+        df["clean_name_prod"] = df.apply(lambda x: clean_string(x.name_prod), axis=1)
 
         df.to_csv(PATH_TO_DATA, index=False)
 

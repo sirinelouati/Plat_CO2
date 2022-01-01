@@ -28,7 +28,8 @@ def clean_string(s: str) -> str:
     s = sub("[^a-z ]", " ", s)  # only keeps letters and spaces
     s = s.lstrip().rstrip()  # remove leading and ending spaces
     from nltk.stem.snowball import FrenchStemmer
-    s = FrenchStemmer().stem(s) # stemming
+
+    s = FrenchStemmer().stem(s)  # stemming
 
     return s
 
