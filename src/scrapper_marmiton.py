@@ -43,7 +43,7 @@ def convert_to_float(frac_str: str) -> float:
 #############################
 
 
-def find_closest_match(product_name: str, distance: Callable = DIST["fwz"]) -> str:
+def find_closest_match(product_name: str, distance: Callable = DIST["per"]) -> str:
     """returns the closest product to 'product_name' in the conversion list (conversions.py)
 
     Args:
@@ -75,6 +75,8 @@ def make_output(content: str) -> Dict:
     missing_convertible = (
         []
     )  # stores the ingredients that are missing from our conversion list
+
+
 
     for i in range(len(content) // 2):
         key = content[2 * i + 1]
