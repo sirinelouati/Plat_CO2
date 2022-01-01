@@ -1,13 +1,11 @@
-# scrapper marmiton
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
+from src.conversions import CONVERSIONS_TO_GRAMS, UNITS_VOLUME
 from src.utils import clean_string
 import time
 from typing import Dict
-
-from conversions_to_grams import CONVERSIONS_TO_GRAMS
 
 
 ###########################
@@ -40,18 +38,6 @@ def convert_to_float(frac_str: str) -> float:
         )  ### dans quel cas a-t-on whole < 0 ?
 
 
-options = webdriver.ChromeOptions()
-options.add_argument("--no-sandbox")
-options.add_argument("--disable-dev-shm-usage")
-options.add_argument("--headless")
-options.add_argument("--user-agent=Mozilla/5.0")
-
-try:
-    driver = webdriver.Chrome("chromedriver", options=options)
-except WebDriverException:
-    driver = webdriver.Chrome("/path/to/chromedriver", options=options)
-
-
 #############################
 ### STANDARD OUTPUT MAKER ###
 #############################
@@ -64,14 +50,13 @@ def make_output(content: str) -> Dict:
         content (str): raw text extracted from Marmiton's html page
 
     Returns:
-        Dict: {"recette_ingredients": Dict, "nombre_personne": int, "note_fiabilite_recette": float, "url_recette": str}
+        Dict: {"ingredients": Dict, "nb_people": int, "score": float, "url": str}
     """
 
     content = content.split("\n")
     recette = {}
 
     for i in range(len(content) // 2):
-
         key = content[2 * i + 1]
         if key.startswith("de "):
             key = key[3:]
@@ -80,113 +65,151 @@ def make_output(content: str) -> Dict:
         if (
             "+" in key or "(" in key
         ):  # for ingredients such as butter (eg: "100 g (+ 10 g pour beurrer le moule)")
-            key = key.split("+").split("(")[0]
+            key = key.split("+")[0].split("(")[0]
 
         value = content[2 * i].split("  ")
         value = value[0].split()
-        value[0] = convert_to_float(value[0])
-        if len(value) == 1:  # for ingredients without unit (eg : 3 apples)
-            value.append("")
-
-        clean_value_1 = clean_string(value[1])
-        if clean_value_1 in CONVERSIONS_TO_GRAMS:
-            value[0] = CONVERSIONS_TO_GRAMS[clean_value_1] * value[0]
-            value[1] = "g"
-        elif clean_value_1 == "":
-            clean_key = clean_string(key)
-            if clean_key in CONVERSIONS_TO_GRAMS:
-                value[0] = CONVERSIONS_TO_GRAMS[clean_key] * value[0]
-                value[1] = "g"
-        if value[1] == "g":
-            recette[key] = value
+        if value == "":  # we decide to ignore the ingredients without a quantity
+            pass
         else:
-            print(
-                f"[INFO] A new item has been detected : {value[1]} must be added to the conversion list."
-            )
+            value[0] = convert_to_float(value[0])
+            if len(value) == 1:  # for ingredients without unit (eg : 3 apples)
+                value.append("")
+
+            clean_value_1 = clean_string(value[1])
+            clean_key = clean_string(key)
+            if clean_value_1 in CONVERSIONS_TO_GRAMS:
+                value[0] = CONVERSIONS_TO_GRAMS[clean_value_1] * value[0]
+                value[1] = "g"
+            elif clean_value_1 in UNITS_VOLUME:
+                if clean_key in CONVERSIONS_TO_GRAMS:
+                    value[0] = (
+                        CONVERSIONS_TO_GRAMS[clean_key] * UNITS_VOLUME[clean_value_1]
+                    )
+                    value[1] = "g"
+                else:
+                    raise Exception(
+                        f"A new item has been detected : {key} must be added to the conversion list."
+                    )
+            elif clean_value_1 == "":
+                if clean_key in CONVERSIONS_TO_GRAMS:
+                    value[0] = CONVERSIONS_TO_GRAMS[clean_key] * value[0]
+                    value[1] = "g"
+                else:
+                    raise Exception(
+                        f"A new item has been detected : {key} must be added to the conversion list."
+                    )
+            if value[1] == "g":
+                recette[key] = value
+            else:
+                raise Exception(
+                    f"A new item has been detected : {value[1]} must be added to the conversion list."
+                )
 
     return recette
 
 
-# Le Scrapper Marmiton
+#############################
+### SCRAPPER FOR MARMITON ###
+#############################
 
 
-def marmitonscrapper(root, nbre_recettes):
-    recettes = {}
-    # Le driver va chercher sur le site de marmiton
-    driver.get("https://www.marmiton.org/")
-    time.sleep(3)
+def marmiton_scrapper(recipe_name: str, n: int) -> Dict:
+    """returns the data corresponding the the n first recipes Marmiton proposes for 'recipe_name'
+
+    Args:
+        recipe_name (str): name of a recipe (eg : "gâteau au chocolat")
+        n (int): number of results to return
+
+    Returns:
+        Dict: the key refers to a single recipe, the value is a Dict returned by the function 'make_output'
+    """
+
+    options = (
+        webdriver.ChromeOptions()
+    )  # these options are mandatory when using Google Colaboratory
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--headless")
+
     try:
+        driver = webdriver.Chrome(
+            "chromedriver", options=options
+        )  # for Google Collaboratory or Windows
+    except WebDriverException:
+        driver = webdriver.Chrome(
+            "/path/to/chromedriver", options=options
+        )  # for Linux or MacOS
+
+    recipes = {}
+    driver.get("https://www.marmiton.org/")
+    time.sleep(3)  # waiting for cookies to pop-up
+
+    try:  # handling cookies pop-up
         Cookie = driver.find_element(By.ID, "didomi-notice-agree-button")
-        time.sleep(3)
         Cookie.click()
-        time.sleep(3)
+        time.sleep(1)  # let's be respectful !
     except NoSuchElementException:
         pass
 
-    with open("page.html", "w") as f:
-        f.write(driver.page_source)
-    time.sleep(3)
     search_bar = driver.find_element(By.TAG_NAME, "input")
-    search_bar.send_keys(root)
+    search_bar.send_keys(recipe_name)
     search_bar.send_keys(Keys.RETURN)
-    time.sleep(3)
-    links_list = [
-        x.get_attribute("href") for x in driver.find_elements(By.XPATH, "//main//a")
-    ]
-    cpt = 0
-    while cpt < min(nbre_recettes, len(links_list)):
-        url = links_list[cpt]
+    time.sleep(1)
+
+    links_list = (
+        [  # list of the links of all the recipes from the first page of results
+            x.get_attribute("href") for x in driver.find_elements(By.XPATH, "//main//a")
+        ]
+    )
+
+    i = 0
+    while i < min(n, len(links_list)):
+
+        url = links_list[i]
+
         try:
-            # Ouverture de la recette correspondante
-            # pas sur utilité de la commande du dessous "link = driver.get(url)""
-            link = driver.get(url)
+            driver.get(url)
             time.sleep(1)
-            time.sleep(1)
-            Recette = driver.find_element(
+            recipe = driver.find_element(
                 By.XPATH,
                 "/html/body/div[2]/div[3]/main/div/div/div[1]/div[1]/div[7]/div[2]/div[2]/div/div/div/div[2]",
             )
-            time.sleep(1)
-            # extraction nbre de personne
-            nbre_personne = driver.find_element(
+            nb_people = driver.find_element(
                 By.XPATH,
                 "/html/body/div[2]/div[3]/main/div/div/div[1]/div[1]/div[7]/div[2]/div[1]/div[1]/div/span[1]",
             )
-            time.sleep(1)
-            # Extraction nbre de commentaires et la note de la recette
-            nbre_commentaires = driver.find_element(
+
+            ## Compute the recipe's score
+            # The score take into account both the number of comments and the average mark.
+            # On Marmiton, the recipes usually get at most 1000 comments.
+            # On Marmiton, the marks go from 0 (bad recipe) to 5 (good recipe).
+            # We decided to give a weight of 60% to the number of comments and 40% to the mark.
+            # Our aggregated score goes from 0 (bad recipe) to 1 (good recipe).
+
+            nb_comments = driver.find_element(
                 By.XPATH,
                 "/html/body/div[2]/div[3]/main/div/div/div[1]/div[1]/div[2]/div[2]/div[2]/a/span",
             )
-            time.sleep(1)
-            note_recette = driver.find_element(
+            mark = driver.find_element(
                 By.XPATH,
                 "/html/body/div[2]/div[3]/main/div/div/div[1]/div[1]/div[2]/div[2]/div[1]/div[2]/span",
             )
-            # Transformation note et nombre de commentaires en valeur numérique
-            nbre_commentaires_int = int(nbre_commentaires.text.split()[0])
-            note_recette_float = float(note_recette.text[: note_recette.text.find("/")])
-            # Construction indicateur fiabilité entre 0 et 1 (note/commentaires)
-            ##Explication indicateur
-            ##En général sur marmiton nbre de commentaires max sur une recette 1000
-            ##Je considère à partir de 1000 commentaires la recette à la note maximale sur la partie commentaire (c'est pour cela je divise par 1000)
-            ##Cette simplification va permettre de normaliser nos données
-            ##Pondération 60% commentaires et 40% note
-            ##Les notes  vont de 0 à 5
-            note_fiabilite = 0.6 * min(nbre_commentaires_int / 1000, 1) + 0.4 * (
-                note_recette_float / 5
+            nb_comments_int = int(nb_comments.text.split()[0])
+            mark_float = float(mark.text[: mark.text.find("/")])
+            note_fiabilite = 0.6 * min(nb_comments_int / 1000, 1) + 0.4 * (
+                mark_float / 5
             )
-            # Traitement sortie création dictionnaire
-            ##cpt numero de la recette mais amelioration possible créer variable recette_i avec i changeant##
-            dico_infos_recette = {}
-            dico_infos_recette["recette_ingredients"] = make_output(Recette.text)
-            dico_infos_recette["nombre_personne"] = int(
-                nbre_personne.text.split("\n")[0]
-            )
-            dico_infos_recette["note_fiabilite_recette"] = note_fiabilite
-            dico_infos_recette["url_recette"] = url
-            recettes["recette_" + str(cpt + 1)] = dico_infos_recette
+
+            # Create standard output
+            recipe_dict = {}
+            recipe_dict["ingredients"] = make_output(recipe.text)
+            recipe_dict["nb_people"] = int(nb_people.text.split("\n")[0])
+            recipe_dict["score"] = note_fiabilite
+            recipe_dict["url"] = url
+            recipes["recette_" + str(i + 1)] = recipe_dict
         except NoSuchElementException:
             pass
-        cpt = cpt + 1
-    return recettes
+        i = i + 1
+
+    return recipes
