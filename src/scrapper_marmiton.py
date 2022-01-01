@@ -261,7 +261,7 @@ def marmiton_scrapper(recipe_name: str, n: int) -> Dict:
         for (missing, matching) in missing_convertible:
             print(f"    ---> '{missing}' was remplaced by '{matching}'")
         print(
-            "These ingredients shall be added the conversion list to be properly processed in the future.\n"
+            "These ingredients shall be added to the conversion list to be properly processed in the future.\n"
         )
 
     return recipes
