@@ -1,9 +1,11 @@
 # scrapper marmiton
-import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
+from src.utils import clean_string
+import time
+from typing import Dict
 
 from conversions_to_grams import CONVERSIONS_TO_GRAMS
 
@@ -13,7 +15,7 @@ from conversions_to_grams import CONVERSIONS_TO_GRAMS
 ###########################
 
 
-def convert_to_float(frac_str : str) -> float:
+def convert_to_float(frac_str: str) -> float:
     """returns the float corresponding to a fractionnal expression given as a string
 
     Args:
@@ -33,7 +35,9 @@ def convert_to_float(frac_str : str) -> float:
         except ValueError:
             whole = 0
         frac = float(num) / float(denom)
-        return whole - frac if whole < 0 else whole + frac ### dans quel cas a-t-on whole < 0 ?
+        return (
+            whole - frac if whole < 0 else whole + frac
+        )  ### dans quel cas a-t-on whole < 0 ?
 
 
 options = webdriver.ChromeOptions()
@@ -48,36 +52,58 @@ except WebDriverException:
     driver = webdriver.Chrome("/path/to/chromedriver", options=options)
 
 
-# Fonction de traitement de texte de sortie
+#############################
+### STANDARD OUTPUT MAKER ###
+#############################
 
 
-def create_dictionnaire_recette_ingredients(a):
+def make_output(content: str) -> Dict:
+    """makes a standard dictionnary from the raw text corresponding to a given recipe
+
+    Args:
+        content (str): raw text extracted from Marmiton's html page
+
+    Returns:
+        Dict: {"recette_ingredients": Dict, "nombre_personne": int, "note_fiabilite_recette": float, "url_recette": str}
+    """
+
+    content = content.split("\n")
     recette = {}
-    for i in range(len(a) // 2):
-        key = a[2 * i + 1]
-        key = key.split("de ")[-1].lower()
-        value = a[2 * i].split("  ")
+
+    for i in range(len(content) // 2):
+
+        key = content[2 * i + 1]
+        if key.startswith("de "):
+            key = key[3:]
+        elif key.startswith("d'"):
+            key = key[2:]
+        if (
+            "+" in key or "(" in key
+        ):  # for ingredients such as butter (eg: "100 g (+ 10 g pour beurrer le moule)")
+            key = key.split("+").split("(")[0]
+
+        value = content[2 * i].split("  ")
         value = value[0].split()
         value[0] = convert_to_float(value[0])
-        if len(value) == 1:
+        if len(value) == 1:  # for ingredients without unit (eg : 3 apples)
             value.append("")
-        # Pour les unités type fruits/légumes
-        if key.find("+") == True:
-            key = key.split("+")[0]
-        # Ici utiliser les algo de distance pour savoir si value[1] est ds notre base ou pas
-        if key.find("(") == True:
-            key = key.split("(")[0]
-        if key.find(" "):
-            key = key.split(" ")[0]
-        if value[1] in CONVERSIONS_TO_GRAMS:
-            value[0] = CONVERSIONS_TO_GRAMS[value[1]] * value[0]
+
+        clean_value_1 = clean_string(value[1])
+        if clean_value_1 in CONVERSIONS_TO_GRAMS:
+            value[0] = CONVERSIONS_TO_GRAMS[clean_value_1] * value[0]
             value[1] = "g"
-        if value[1] == "":
-            if key in CONVERSIONS_TO_GRAMS:
-                value[0] = CONVERSIONS_TO_GRAMS[key] * value[0]
+        elif clean_value_1 == "":
+            clean_key = clean_string(key)
+            if clean_key in CONVERSIONS_TO_GRAMS:
+                value[0] = CONVERSIONS_TO_GRAMS[clean_key] * value[0]
                 value[1] = "g"
         if value[1] == "g":
             recette[key] = value
+        else:
+            print(
+                f"[INFO] A new item has been detected : {value[1]} must be added to the conversion list."
+            )
+
     return recette
 
 
@@ -153,9 +179,7 @@ def marmitonscrapper(root, nbre_recettes):
             # Traitement sortie création dictionnaire
             ##cpt numero de la recette mais amelioration possible créer variable recette_i avec i changeant##
             dico_infos_recette = {}
-            dico_infos_recette[
-                "recette_ingredients"
-            ] = create_dictionnaire_recette_ingredients(Recette.text.split("\n"))
+            dico_infos_recette["recette_ingredients"] = make_output(Recette.text)
             dico_infos_recette["nombre_personne"] = int(
                 nbre_personne.text.split("\n")[0]
             )
