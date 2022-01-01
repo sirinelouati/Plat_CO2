@@ -13,7 +13,7 @@ from re import sub
 
 def clean_string(s: str) -> str:
     """Cleans up the string s to enhance the matching.
-    Stemming and lemmatization are not implemented because they would reduce the matching
+    Lemmatization is not implemented because it would reduce the matching
     performance.
 
     Args:
@@ -27,6 +27,9 @@ def clean_string(s: str) -> str:
     s = s.lower()  # force lowercase
     s = sub("[^a-z ]", " ", s)  # only keeps letters and spaces
     s = s.lstrip().rstrip()  # remove leading and ending spaces
+    from nltk.stem.snowball import FrenchStemmer
+    s = FrenchStemmer().stem(s) # stemming
+
     return s
 
 
@@ -68,12 +71,15 @@ DIST["lev"] = lambda a, b: edit_distance(a, b) / max(len(a), len(b))
 # This distance is specially designed to compare ingredients
 
 
-def personalized_distance(a, b):
+def personalized_distance(a: str, b: str) -> float:
+
     if a == b:
         return 0.0
+
     la, lb = len(a), len(b)
     if la > lb:  # let a be the shortest string
         la, lb, a, b = lb, la, b, a
+
     if b.startswith(a):
         return 0.2 - 0.2 * la / lb
     a_split = a.split()
