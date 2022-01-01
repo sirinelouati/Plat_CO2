@@ -79,7 +79,7 @@ def import_data_from_agribalyse(replace: bool = False) -> pd.DataFrame:
 def match_products(
     product_name: str,
     products_data: pd.DataFrame = None,
-    distance: Callable = DIST["lev"],
+    distance: Callable = DIST["per"],
     n: Optional[int] = 1,
 ) -> pd.DataFrame:
     """Returns the 'n' closest products to 'product_name' in 'products_data' according to the
@@ -161,7 +161,7 @@ def compare_methods(
 def compute_emissions(
     product_name: str,
     products_data: pd.DataFrame = None,
-    distance: Callable = DIST["lev"],
+    distance: Callable = DIST["per"],
 ) -> pd.DataFrame:
     """Computes estimated emission figures for a given product name.
 

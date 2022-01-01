@@ -62,3 +62,29 @@ DIST["fwz"] = lambda a, b: 1 - partial_ratio(a, b) / 100
 from nltk import edit_distance
 
 DIST["lev"] = lambda a, b: edit_distance(a, b) / max(len(a), len(b))
+
+
+# Personalized distance (per)
+# This distance is specially designed to compare ingredients
+
+def personalized_distance(a, b):
+    if a == b:
+        return 0.
+    elif b.startswith(a):
+        return 0.2 - 0.2 * len(a) / len(b)
+    a_split = a.split()
+    if b.startswith(a_split[0]):
+        common_start = a_split[0]
+        i = 1
+        while i < len(a_split) and b.startswith(common_start):
+            common_start += a_split[i]
+            i += 1
+        return 0.4 - 0.2 * len(common_start) / len(a)
+    elif a in b:
+        return 0.6 - 0.2 * b.find(a) / len(b)
+    elif a_split[0] in b:
+        return 0.6 + 0.2 * DIST["gpm"](a, b)
+    else:
+        return 0.8 + 0.2 * DIST["lev"](a, b)
+
+DIST["per"] = personalized_distance

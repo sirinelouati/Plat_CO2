@@ -1,18 +1,22 @@
+import pandas as pd
 from src.food2emissions import compute_emissions
 from src.utils import DIST
-import pandas as pd
-from typing import Dict, Tuple
+from typing import Callable, Dict, Tuple
 
 pd.options.mode.chained_assignment = (  # prevents pandas from sending seemingly useless warning messages
     None
 )
 
 
-def match_all_ingredients(recipes: Dict) -> pd.DataFrame:
+def match_all_ingredients(
+    recipes: Dict, distance: Callable = DIST["per"]
+) -> pd.DataFrame:
     """Finds the emissions figures that best match with the ingredients found by the scrappers.
 
     Args:
         recipes (Dict): output of the scrappers
+        distance (Callable): function that computes a distance between two strings. Its value is 0
+            for a perfect match, 1 in the worst case. Defaults to Levenshtein's distance.
 
     Returns:
         pd.DataFrame: best emission figures for each ingredient
@@ -20,21 +24,19 @@ def match_all_ingredients(recipes: Dict) -> pd.DataFrame:
 
     # get the list of all ingredients used in the recipes
     ing_all = list(
-        set(
+        set(  # to remove duplicates
             ing
             for ing_list in [
-                list(recipe["ingredients"].keys())
-                for website_list in recipes.values()
-                for recipe in website_list
+                list(recipe["ingredients"].keys()) for recipe in recipes.values()
             ]
             for ing in ing_list
         )
     )
 
     # compute the emissions figures for each of them
-    ing_data = compute_emissions(ing_all[0])
+    ing_data = compute_emissions(ing_all[0], distance=distance)
     for ing in ing_all[1:]:
-        ing_data = ing_data.append(compute_emissions(ing), ignore_index=True)
+        ing_data = ing_data.append(compute_emissions(ing, distance=distance), ignore_index=True)
 
     ing_agg = ing_data[["name_prod", "uncertainty", "agribalyse_match"]]
 
@@ -53,7 +55,7 @@ def match_all_ingredients(recipes: Dict) -> pd.DataFrame:
             [
                 (
                     prod,
-                    DIST["fwz"](prod_name, prod),
+                    distance(prod_name, prod),
                     ing_agg[ing_agg["name_prod"] == prod].iloc[0]["uncertainty"],
                     ing_agg[ing_agg["name_prod"] == prod].iloc[0]["agribalyse_match"],
                 )
@@ -76,15 +78,15 @@ def match_all_ingredients(recipes: Dict) -> pd.DataFrame:
     )
 
     # keeps an ingredient, or replaces it by the closest one
-    (ing_agg["best"], ing_agg["agribalyse_match"]) = zip(
+    (ing_agg["best"], ing_agg["agribalyse_match"], ing_agg["best_distance"]) = zip(
         *pd.Series(
             ing_agg.apply(
-                lambda x: (x["name_prod"], x["agribalyse_match"])
+                lambda x: (x["name_prod"], x["agribalyse_match"], x["uncertainty"])
                 if (
                     x["uncertainty"] < x["distance_to_closest"]
                     or x["uncertainty"] < x["closest_uncertainty"]
                 )
-                else (x["closest"], x["closest_agribalyse_match"]),
+                else (x["closest"], x["closest_agribalyse_match"], x["closest_uncertainty"]),
                 axis=1,
             )
         )
