@@ -5,6 +5,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
 
+from src.conversions_to_grams import CONVERSIONS_TO_GRAMS
+
 options = webdriver.ChromeOptions()
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
@@ -15,64 +17,6 @@ try:
     driver = webdriver.Chrome("chromedriver", options=options)
 except WebDriverException:
     driver = webdriver.Chrome("/path/to/chromedriver", options=options)
-
-conversion_g_unite = {}
-conversion_g_unite["tomate"] = 130
-conversion_g_unite["tomates"] = 130
-conversion_g_unite["oeufs"] = 70
-conversion_g_unite["oeuf"] = 70
-conversion_g_unite["citron"] = 120
-conversion_g_unite["citrons"] = 120
-conversion_g_unite["carotte"] = 125
-conversion_g_unite["carottes"] = 125
-conversion_g_unite["echalote"] = 25
-conversion_g_unite["echalotes"] = 25
-conversion_g_unite["laitue"] = 300
-conversion_g_unite["laitues"] = 300
-conversion_g_unite["oignons"] = 100
-conversion_g_unite["oignon"] = 100
-conversion_g_unite["poireau"] = 150
-conversion_g_unite["poireaux"] = 150
-conversion_g_unite["pomme de terre"] = 160
-conversion_g_unite["pommes de terre"] = 160
-conversion_g_unite["abricot"] = 45
-conversion_g_unite["abricots"] = 45
-conversion_g_unite["ananas"] = 1800
-conversion_g_unite["banane"] = 150
-conversion_g_unite["bananes"] = 150
-conversion_g_unite["clementine"] = 70
-conversion_g_unite["clementines"] = 70
-conversion_g_unite["kiwi"] = 100
-conversion_g_unite["kiwis"] = 100
-conversion_g_unite["mangue"] = 400
-conversion_g_unite["mangues"] = 400
-conversion_g_unite["melon"] = 400
-conversion_g_unite["melons"] = 400
-conversion_g_unite["orange"] = 200
-conversion_g_unite["oranges"] = 200
-conversion_g_unite["pamplemousse"] = 400
-conversion_g_unite["pamplemousses"] = 400
-conversion_g_unite["peche"] = 150
-conversion_g_unite["peches"] = 150
-conversion_g_unite["poire"] = 120
-conversion_g_unite["poires"] = 120
-conversion_g_unite["pomme"] = 150
-conversion_g_unite["pommes"] = 150
-conversion_g_unite["paquet"] = 11
-conversion_g_unite["paquets"] = 11
-conversion_g_unite["sachet"] = 11
-conversion_g_unite["sachets"] = 11
-conversion_g_unite["verre"] = 250
-conversion_g_unite["verres"] = 250
-conversion_g_unite["once"] = 28.35
-conversion_g_unite["onces"] = 28.35
-conversion_g_unite["tasse"] = 250
-conversion_g_unite["tasses"] = 250
-conversion_g_unite["cuillers à café "] = 5
-conversion_g_unite["cuiller à café "] = 5
-conversion_g_unite["une cuillers à soupe"] = 15
-conversion_g_unite["une cuiller à soupe"] = 15
-
 
 # Conversion str/fractions en float
 
@@ -112,12 +56,12 @@ def create_dictionnaire_recette_ingredients(a):
             key = key.split("(")[0]
         if key.find(" "):
             key = key.split(" ")[0]
-        if value[1] in conversion_g_unite:
-            value[0] = conversion_g_unite[value[1]] * value[0]
+        if value[1] in CONVERSIONS_TO_GRAMS:
+            value[0] = CONVERSIONS_TO_GRAMS[value[1]] * value[0]
             value[1] = "g"
         if value[1] == "":
-            if key in conversion_g_unite:
-                value[0] = conversion_g_unite[key] * value[0]
+            if key in CONVERSIONS_TO_GRAMS:
+                value[0] = CONVERSIONS_TO_GRAMS[key] * value[0]
                 value[1] = "g"
         if value[1] == "g":
             recette[key] = value
