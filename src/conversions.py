@@ -1,8 +1,24 @@
-UNITS_VOLUME = {
-    "ml": 1,
+CONVERSIONS_TO_ML = {
     "cl": 10,
+    "cuiller a cafe": 0.4,
+    "cuiller a soupe": 14,
+    "cuillere a cafe": 0.4,
+    "cuillere a soupe": 14,
+    "cuilleres a cafe": 0.4,
+    "cuilleres a soupe": 14,
+    "cuillers a cafe": 0.4,
+    "cuillers a soupe": 14,
     "dl": 100,
     "l": 1000,
+    "ml": 1,
+    "petite cuiller": 0.4,
+    "petite cuillere": 0.4,
+    "petites cuilleres": 0.4,
+    "petites cuillers": 0.4,
+    "tasse": 250,
+    "tasses": 250,
+    "verre": 250,
+    "verres": 250,
 }
 
 CONVERSIONS_TO_GRAMS = {
@@ -15,17 +31,18 @@ CONVERSIONS_TO_GRAMS = {
     "carottes": 125,
     "citron": 120,
     "citrons": 120,
-    "creme fraiche": 1.35,  # g / mL
     "clementine": 70,
     "clementines": 70,
-    "cuiller à cafe": 5,
-    "cuillers à cafe": 5,
+    "creme fraiche": 1.35,  # g / mL
+    "eau": 1,  # g / mL
     "echalote": 25,
     "echalotes": 25,
     "endive": 100,
     "endives": 100,
+    "huile": 0.91,  # g / mL
     "kiwi": 100,
     "kiwis": 100,
+    "lait": 1.03,  # g / mL
     "laitue": 300,
     "laitues": 300,
     "mangue": 400,
@@ -47,6 +64,8 @@ CONVERSIONS_TO_GRAMS = {
     "pate brisee": 230,
     "peche": 150,
     "peches": 150,
+    "pincee": 5,
+    "pincees": 5,
     "poire": 120,
     "poireau": 150,
     "poireaux": 150,
@@ -59,12 +78,7 @@ CONVERSIONS_TO_GRAMS = {
     "pommes": 150,
     "sachet": 11,
     "sachets": 11,
-    "tasse": 250,
-    "tasses": 250,
     "tomate": 130,
     "tomates": 130,
-    "une cuiller à soupe": 15,
-    "une cuillers à soupe": 15,
-    "verre": 250,
-    "verres": 250,
+    "vin": 0.99,  # g / mL
 }

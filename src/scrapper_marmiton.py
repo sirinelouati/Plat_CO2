@@ -3,7 +3,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
-from src.conversions import CONVERSIONS_TO_GRAMS, UNITS_VOLUME
+from src.conversions import CONVERSIONS_TO_GRAMS, CONVERSIONS_TO_ML
 from src.utils import DIST, clean_string
 import time
 from tqdm import tqdm
@@ -106,16 +106,18 @@ def make_output(content: str) -> Dict:
         if unit in CONVERSIONS_TO_GRAMS:  # eg : "3 pincées de sel"
             quantity = CONVERSIONS_TO_GRAMS[unit] * quantity
             unit = "g"
-        elif unit in UNITS_VOLUME:  # eg : "5 cl d'huile"
+        elif unit in CONVERSIONS_TO_ML:  # eg : "5 cl d'huile"
             if product in CONVERSIONS_TO_GRAMS:
                 quantity = (
-                    CONVERSIONS_TO_GRAMS[product] * UNITS_VOLUME[unit]
+                    CONVERSIONS_TO_GRAMS[product] * CONVERSIONS_TO_ML[unit]
                 ) * quantity
                 unit = "g"
             else:  # eg : "5 cl d'huile d'olive de la marque Lorem Ipsum"
                 closest_match = find_closest_match(product)
                 quantity = (
-                    CONVERSIONS_TO_GRAMS[closest_match] * UNITS_VOLUME[unit] * quantity
+                    CONVERSIONS_TO_GRAMS[closest_match]
+                    * CONVERSIONS_TO_ML[unit]
+                    * quantity
                 )
                 unit = "g"
                 missing_convertible.append((product, closest_match))
@@ -131,7 +133,9 @@ def make_output(content: str) -> Dict:
         if unit == "g":  # eg : "10 g de sucre"
             recette[key] = quantity
         else:  # for unhandled cases such as "1 boîte de compote"
-            print(f"Cannot convert to grams : ({key}, {raw_quantity}).")
+            print(
+                f"\n\n[INFO] Cannot convert an ingredient to grams : ({key}, {raw_quantity}).\n\n"
+            )
             return None
 
     return (recette, missing_convertible)
