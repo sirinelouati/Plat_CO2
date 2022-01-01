@@ -33,9 +33,7 @@ def convert_to_float(frac_str: str) -> float:
         except ValueError:
             whole = 0
         frac = float(num) / float(denom)
-        return (
-            whole - frac if whole < 0 else whole + frac
-        )  ### dans quel cas a-t-on whole < 0 ?
+        return whole + frac
 
 
 #############################
@@ -207,9 +205,11 @@ def marmiton_scrapper(recipe_name: str, n: int) -> Dict:
             recipe_dict["nb_people"] = int(nb_people.text.split("\n")[0])
             recipe_dict["score"] = note_fiabilite
             recipe_dict["url"] = url
-            recipes["recette_" + str(i + 1)] = recipe_dict
+            recipes[driver.find_element(By.TAG_NAME, "h1").text] = recipe_dict
+
         except NoSuchElementException:
             pass
-        i = i + 1
+
+        i += 1
 
     return recipes
