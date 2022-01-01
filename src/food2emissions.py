@@ -66,6 +66,11 @@ def import_data_from_agribalyse(replace: bool = False) -> pd.DataFrame:
                 "Changement climatique (kg CO2 eq/kg de produit) - Consommation": "consumption_co2",
             }
         )
+
+        df["clean_name_prod"] = df.apply(
+            lambda x: clean_string(x.name_prod), axis=1
+        )
+
         df.to_csv(PATH_TO_DATA, index=False)
 
     return df
@@ -101,10 +106,6 @@ def match_products(
 
     if products_data is None:
         products_data = import_data_from_agribalyse()
-
-    products_data["clean_name_prod"] = products_data.apply(
-        lambda x: clean_string(x.name_prod), axis=1
-    )
 
     clean_product_name = clean_string(product_name)
 
