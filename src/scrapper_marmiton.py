@@ -5,7 +5,36 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
 
-from src.conversions_to_grams import CONVERSIONS_TO_GRAMS
+from conversions_to_grams import CONVERSIONS_TO_GRAMS
+
+
+###########################
+### CONVERSION TO FLOAT ###
+###########################
+
+
+def convert_to_float(frac_str : str) -> float:
+    """returns the float corresponding to a fractionnal expression given as a string
+
+    Args:
+        frac_str (str): fractionnal expression (ex : 1/2, 3⁄4, 5 1/2, ...)
+
+    Returns:
+        float: value of the expression
+    """
+
+    try:
+        return float(frac_str)
+    except ValueError:
+        num, denom = frac_str.split("⁄")
+        try:
+            leading, num = num.split(" ")
+            whole = float(leading)
+        except ValueError:
+            whole = 0
+        frac = float(num) / float(denom)
+        return whole - frac if whole < 0 else whole + frac ### dans quel cas a-t-on whole < 0 ?
+
 
 options = webdriver.ChromeOptions()
 options.add_argument("--no-sandbox")
@@ -17,22 +46,6 @@ try:
     driver = webdriver.Chrome("chromedriver", options=options)
 except WebDriverException:
     driver = webdriver.Chrome("/path/to/chromedriver", options=options)
-
-# Conversion str/fractions en float
-
-
-def convert_to_float(frac_str):
-    try:
-        return float(frac_str)
-    except ValueError:
-        num, denom = frac_str.split("⁄")
-        try:
-            leading, num = num.split(" ")
-            whole = float(leading)
-        except ValueError:
-            whole = 0
-        frac = float(num) / float(denom)
-        return whole - frac if whole < 0 else whole + frac
 
 
 # Fonction de traitement de texte de sortie
