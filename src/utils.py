@@ -81,6 +81,11 @@ def personalized_distance(a: str, b: str) -> float:
     if la > lb:  # let a be the shortest string
         la, lb, a, b = lb, la, b, a
 
+    if (
+        ("beurre" in a) and not ("cacao" in a) and ("beurre de cacao" in b)
+    ):  # frequent pathologic case
+        return 1.0
+
     if b.startswith(a):
         return 0.2 - 0.2 * la / lb
     a_split = a.split()
