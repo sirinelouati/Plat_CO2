@@ -154,11 +154,18 @@ def compute_recipes_figures(recipes: Dict, distance: Callable = DIST["per"]) -> 
 
     recipe_emissions = pd.DataFrame()
     recipe_uncertainty = pd.DataFrame()
+    cross_emissions = pd.DataFrame(
+        columns=["recipe", *ingredients_figures["product"].to_list()]
+    )
 
     print("\nProcessing recipes...\n")
     for (recipe_name, recipe,) in tqdm(
         recipes.items(), ncols=100
     ):  # might be optimized (but not too slow anyway...)
+
+        cross_emissions_row = {"recipe": recipe_name}
+        for ingredient in ingredients_figures["product"].to_list():
+            cross_emissions_row[ingredient] = 0
 
         emission_denominator = 0
         uncertainty_denominators = {
@@ -194,6 +201,7 @@ def compute_recipes_figures(recipes: Dict, distance: Callable = DIST["per"]) -> 
                         ingredients_figures["product"] == ingredient
                     ].iloc[0][emission_type]
                 )
+                cross_emissions_row[ingredient] += numerator / emission_denominator
             uncertainty[emission_type] = (
                 numerator / uncertainty_denominators[emission_type]
             )
@@ -201,6 +209,7 @@ def compute_recipes_figures(recipes: Dict, distance: Callable = DIST["per"]) -> 
 
         recipe_emissions = recipe_emissions.append(emissions, ignore_index=True)
         recipe_uncertainty = recipe_uncertainty.append(uncertainty, ignore_index=True)
+        cross_emissions = cross_emissions.append(cross_emissions_row, ignore_index=True)
 
     recipe_emissions["total_co2"] = recipe_emissions[EMISSION_TYPES].sum(axis=1)
 
@@ -213,4 +222,4 @@ def compute_recipes_figures(recipes: Dict, distance: Callable = DIST["per"]) -> 
         )
     recipe_uncertainty["weighted_average"] = prod_figures[EMISSION_TYPES].sum(axis=1)
 
-    return (recipe_emissions, recipe_uncertainty, ingredients_figures)
+    return (recipe_emissions, recipe_uncertainty, ingredients_figures, cross_emissions)
