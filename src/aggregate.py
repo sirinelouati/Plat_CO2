@@ -150,10 +150,10 @@ def compute_recipes_figures(recipes: Dict, distance: Callable = DIST["per"]) -> 
             recipes[recipe_name]["ingredients"][ingredient] = (
                 weight / recipe["nb_people"]
             )
-            recipes[recipe_name]["nb_people"] = 1
+        recipes[recipe_name]["nb_people"] = 1
 
-    emissions_figures = pd.DataFrame()
-    uncertainty_figures = pd.DataFrame()
+    recipe_emissions = pd.DataFrame()
+    recipe_uncertainty = pd.DataFrame()
 
     print("\nProcessing recipes...\n")
     for (recipe_name, recipe,) in tqdm(
@@ -180,8 +180,8 @@ def compute_recipes_figures(recipes: Dict, distance: Callable = DIST["per"]) -> 
                     ].iloc[0][emission_type]
                 )
 
-        recipe_emissions = {"recipe": recipe_name}
-        recipe_uncertainty = {"recipe": recipe_name}
+        emissions = {"recipe": recipe_name}
+        uncertainty = {"recipe": recipe_name}
         for emission_type in EMISSION_TYPES:
             numerator = 0
             for ingredient, weight in recipe["ingredients"].items():
@@ -194,27 +194,23 @@ def compute_recipes_figures(recipes: Dict, distance: Callable = DIST["per"]) -> 
                         ingredients_figures["product"] == ingredient
                     ].iloc[0][emission_type]
                 )
-            recipe_uncertainty[emission_type] = (
+            uncertainty[emission_type] = (
                 numerator / uncertainty_denominators[emission_type]
             )
-            recipe_emissions[emission_type] = numerator / emission_denominator
+            emissions[emission_type] = numerator / emission_denominator
 
-        emissions_figures = emissions_figures.append(
-            recipe_emissions, ignore_index=True
-        )
-        uncertainty_figures = uncertainty_figures.append(
-            recipe_uncertainty, ignore_index=True
-        )
+        recipe_emissions = recipe_emissions.append(emissions, ignore_index=True)
+        recipe_uncertainty = recipe_uncertainty.append(uncertainty, ignore_index=True)
 
-    emissions_figures["total"] = emissions_figures[EMISSION_TYPES].sum(axis=1)
+    recipe_emissions["total_co2"] = recipe_emissions[EMISSION_TYPES].sum(axis=1)
 
     prod_figures = pd.DataFrame()
     for emission_type in EMISSION_TYPES:
         prod_figures[emission_type] = (
-            emissions_figures[emission_type]
-            * uncertainty_figures[emission_type]
-            / emissions_figures["total"]
+            recipe_emissions[emission_type]
+            * recipe_uncertainty[emission_type]
+            / recipe_emissions["total_co2"]
         )
-    uncertainty_figures["weighted_average"] = prod_figures[EMISSION_TYPES].sum(axis=1)
+    recipe_uncertainty["weighted_average"] = prod_figures[EMISSION_TYPES].sum(axis=1)
 
-    return (emissions_figures, uncertainty_figures)
+    return (recipe_emissions, recipe_uncertainty, ingredients_figures)
