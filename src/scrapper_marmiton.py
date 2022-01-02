@@ -60,11 +60,12 @@ def find_closest_match(product_name: str, distance: Callable = DIST["per"]) -> s
     )
 
 
-def make_output(content: str) -> Dict:
+def make_output(content: str, verbose: bool = True) -> Dict:
     """makes a standard dictionnary from the raw text corresponding to a given recipe
 
     Args:
         content (str): raw text extracted from Marmiton's html page
+        verbose (bool): True to display any html list of ingredients that cannot be interpreted
 
     Returns:
         Dict: {"ingredients": Dict, "nb_people": int, "score": float, "url": str}
@@ -75,6 +76,22 @@ def make_output(content: str) -> Dict:
     missing_convertible = (
         []
     )  # stores the ingredients that are missing from our conversion list
+
+    missing_quantity = []  # stores the indices where no quantity has been provided
+    for i in range(len(content) // 2):
+        if not re.match(r"\d", content[2 * i + len(missing_quantity)]):
+            missing_quantity.append(2 * i)
+
+    for i, j in enumerate(missing_quantity):
+        content.insert(i + j, "1")  # fills the missing quantities by 1
+
+    if len(content) % 2 == 1:
+        if verbose:
+            print(
+                "\r"
+                + f"[INFO] Cannot interpret the following list of ingredients : {content}\n"
+            )
+        return None  # cannot process the list of ingredients
 
     for i in range(len(content) // 2):
         key = content[2 * i + 1]
