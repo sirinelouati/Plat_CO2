@@ -9,6 +9,7 @@ from src.dummy import (
     dummy_emissions,
     dummy_uncertainties,
     dummy_ingredients,
+    dummy_cross,
 )
 from src.aggregate import match_all_ingredients, compute_recipes_figures
 from src.interface import compare_ingredients, compare_recipes, preprocess_data
@@ -46,7 +47,9 @@ def demo_aggregate_1():
 
 
 def demo_aggregate_2():
-    emissions, uncertainties, ingredients = compute_recipes_figures(dummy_output1)
+    emissions, uncertainties, ingredients, cross_emissions = compute_recipes_figures(
+        dummy_output1
+    )
     print(
         """\n
     #################
@@ -54,7 +57,7 @@ def demo_aggregate_2():
     #################
     """
     )
-    print(emissions.to_dict())
+    print(emissions)
     print(
         """\n
     #####################
@@ -62,7 +65,7 @@ def demo_aggregate_2():
     #####################
     """
     )
-    print(uncertainties.to_dict())
+    print(uncertainties)
     print(
         """\n
     ###################
@@ -70,7 +73,15 @@ def demo_aggregate_2():
     ###################
     """
     )
-    print(ingredients.to_dict())
+    print(ingredients)
+    print(
+        """\n
+    #######################
+    ### CROSS EMISSIONS ###
+    #######################
+    """
+    )
+    print(cross_emissions.to_dict())
 
 
 def demo_scrapper():
@@ -79,8 +90,10 @@ def demo_scrapper():
 
 
 def demo_interface():
-    a, b = preprocess_data(dummy_emissions, dummy_uncertainties, dummy_ingredients)
-    compare_recipes(a)
+    _, b, c = preprocess_data(
+        dummy_emissions, dummy_uncertainties, dummy_ingredients, dummy_cross
+    )
+    compare_recipes(c)
     compare_ingredients(b)
 
 
