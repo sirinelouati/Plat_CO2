@@ -4,8 +4,14 @@ from src.food2emissions import (
     compare_methods,
     compute_emissions,
 )
-from src.dummy import dummy_output1
+from src.dummy import (
+    dummy_output1,
+    dummy_emissions,
+    dummy_uncertainties,
+    dummy_ingredients,
+)
 from src.aggregate import match_all_ingredients, compute_recipes_figures
+from src.interface import compare_ingredients, compare_recipes, preprocess_data
 from src.scrapper_marmiton import marmiton_scrapper
 from src.utils import DIST
 
@@ -40,9 +46,7 @@ def demo_aggregate_1():
 
 
 def demo_aggregate_2():
-    emissions, uncertainties = compute_recipes_figures(
-        marmiton_scrapper("gâteau au chocolat", 6)
-    )
+    emissions, uncertainties, ingredients = compute_recipes_figures(dummy_output1)
     print(
         """\n
     #################
@@ -50,7 +54,7 @@ def demo_aggregate_2():
     #################
     """
     )
-    print(emissions)
+    print(emissions.to_dict())
     print(
         """\n
     #####################
@@ -58,7 +62,15 @@ def demo_aggregate_2():
     #####################
     """
     )
-    print(uncertainties)
+    print(uncertainties.to_dict())
+    print(
+        """\n
+    ###################
+    ### INGREDIENTS ###
+    ###################
+    """
+    )
+    print(ingredients.to_dict())
 
 
 def demo_scrapper():
@@ -66,6 +78,12 @@ def demo_scrapper():
     print(marmiton_scrapper("gâteau au chocolat", 4))
 
 
+def demo_interface():
+    a, b = preprocess_data(dummy_emissions, dummy_uncertainties, dummy_ingredients)
+    compare_recipes(a)
+    compare_ingredients(b)
+
+
 if __name__ == "__main__":
 
-    demo_aggregate_2()
+    demo_interface()
