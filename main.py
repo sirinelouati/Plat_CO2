@@ -97,6 +97,16 @@ def demo_interface():
     compare_ingredients(b)
 
 
+def demo():
+
+    _, b, c = preprocess_data(
+        *compute_recipes_figures(marmiton_scrapper("crumble aux pommes", 8))
+    )
+
+    compare_recipes(c)
+    compare_ingredients(b)
+
+
 if __name__ == "__main__":
 
-    demo_interface()
+    demo()

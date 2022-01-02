@@ -9,22 +9,36 @@ def preprocess_data(
 
     recipe_data = recipe_emissions.merge(recipe_uncertainty, on="recipe")[
         ["recipe", "total_co2", "weighted_average"]
-    ].rename(columns={"total_co2": "emissions", "weighted_average": "uncertainty"})
+    ].rename(
+        columns={
+            "recipe": "Recette",
+            "total_co2": "Émissions de CO2 (kgCO2eq)",
+            "weighted_average": "Incertitude",
+        }
+    )
 
     ingredients_data = pd.melt(
         ingredients_figures,
         id_vars=["product", "uncertainty"],
         value_vars=EMISSION_TYPES,
-        var_name="emission_type",
-        value_name="co2",
+        var_name="Type d'émission de CO2",
+        value_name="Émissions de CO2 (kgCO2eq)",
+    ).rename(columns={"product": "Ingrédient", "uncertainty": "Incertitude"})
+
+    ingredients_data["Type d'émission de CO2"] = (
+        ingredients_data["Type d'émission de CO2"]
+        .str.capitalize()
+        .str.replace("_co2", "")
     )
+
+    ingredients_data["Ingrédient"] = ingredients_data["Ingrédient"].str.capitalize()
 
     cross_data = pd.melt(
         cross_emissions,
         id_vars=["recipe"],
-        var_name="ingredient",
-        value_name="co2",
-    )
+        var_name="Ingrédient",
+        value_name="Émissions de CO2 (khCO2eq)",
+    ).rename(columns={"recipe": "Recette"})
 
     return recipe_data, ingredients_data, cross_data
 
@@ -33,10 +47,10 @@ def compare_recipes(cross_data):
 
     fig = px.bar(
         cross_data,
-        x="recipe",
-        y="co2",
-        color="ingredient",
-        title="Émissions de CO2 par recette (gCO2eq/g)",
+        x="Recette",
+        y="Émissions de CO2 (khCO2eq)",
+        color="Ingrédient",
+        title="Émissions de CO2 par recette (pour 1 kg)",
     )
     fig.show()
 
@@ -45,9 +59,9 @@ def compare_ingredients(ingredients_data):
 
     fig = px.bar(
         ingredients_data,
-        x="product",
-        y="co2",
-        color="emission_type",
-        title="Émissions de CO2 par ingrédient (gCO2eq/g)",
+        x="Ingrédient",
+        y="Émissions de CO2 (kgCO2eq)",
+        color="Type d'émission de CO2",
+        title="Émissions de CO2 par ingrédient (pour 1 kg)",
     )
     fig.show()
