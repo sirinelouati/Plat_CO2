@@ -118,7 +118,7 @@ def make_output(content: str) -> Dict:
                     * quantity
                 )
                 unit = "g"
-                missing_convertible.append((product, closest_match))
+                missing_convertible.append((key, closest_match))
         elif unit == "":  # eg : "5 pommes"
             if product in CONVERSIONS_TO_GRAMS:
                 quantity = CONVERSIONS_TO_GRAMS[product] * quantity
