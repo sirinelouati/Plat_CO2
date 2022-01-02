@@ -78,7 +78,7 @@ def dummy_scrapper(recipe="gâteau au chocolat", nmax = 10):
     ###############
     """
     )
-    print(output1.to_dict())
+    print(output1)
     return output1
 
 
