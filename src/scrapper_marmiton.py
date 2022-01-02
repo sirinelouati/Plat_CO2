@@ -1,3 +1,4 @@
+from math import ceil
 import re
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -60,7 +61,7 @@ def find_closest_match(product_name: str, distance: Callable = DIST["per"]) -> s
     )
 
 
-def make_output(content: str, verbose: bool = True) -> Dict:
+def make_output(content: str, verbose: bool = False) -> Dict:
     """makes a standard dictionnary from the raw text corresponding to a given recipe
 
     Args:
@@ -78,12 +79,12 @@ def make_output(content: str, verbose: bool = True) -> Dict:
     )  # stores the ingredients that are missing from our conversion list
 
     missing_quantity = []  # stores the indices where no quantity has been provided
-    for i in range(len(content) // 2):
-        if not re.match(r"\d", content[2 * i + len(missing_quantity)]):
+    for i in range(ceil(len(content) / 2)):
+        if not re.match(r"\d", content[2 * i - len(missing_quantity)]):
             missing_quantity.append(2 * i)
 
     for i, j in enumerate(missing_quantity):
-        content.insert(i + j, "1")  # fills the missing quantities by 1
+        content.insert(i + j, "1")  # fills the missing quantities with 1
 
     if len(content) % 2 == 1:
         if verbose:
@@ -94,7 +95,7 @@ def make_output(content: str, verbose: bool = True) -> Dict:
         return None  # cannot process the list of ingredients
 
     for i in range(len(content) // 2):
-        key = content[2 * i + 1]
+        key = content[2 * i + 1].lstrip().rstrip()
         if key.startswith("de "):
             key = key[3:]
         elif key.startswith("d'"):
@@ -102,7 +103,7 @@ def make_output(content: str, verbose: bool = True) -> Dict:
         if (
             "+" in key or "(" in key
         ):  # for ingredients such as butter (eg: "100 g (+ 10 g pour beurrer le moule)")
-            key = key.split("+")[0].split("(")[0]
+            key = key.split(" +")[0].split(" (")[0]
 
         value = content[2 * i].split("  ")
         raw_quantity = re.match(
