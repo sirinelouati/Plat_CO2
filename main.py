@@ -68,9 +68,9 @@ def demo_interface(
 ########################
 
 
-def dummy_scrapper(recipe="gâteau au chocolat"):
+def dummy_scrapper(recipe="gâteau au chocolat", nmax = 10):
 
-    output1 = marmiton_scrapper(recipe, 8)
+    output1 = marmiton_scrapper(recipe, nmax)
     print(
         """\n
     ###############
@@ -148,4 +148,4 @@ def main(recipe="gâteau au chocolat", nmax=10):
 
 if __name__ == "__main__":
 
-    main()
+    generate_all_dummy()
