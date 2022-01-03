@@ -48,11 +48,13 @@ CONVERSIONS_TO_GRAMS = {
     "pech": 150,
     "pince": 5,
     "poir": 120,
+    "poivr": 5,
     "poireau": 150,
     "pomm de terr": 160,
     "pomm golden": 150,
     "pomm": 150,
     "sachet": 11,
+    "sel": 5,
     "sucr": 1.59,  # g / mL
     "tomat": 130,
     "vin": 0.99,  # g / mL
