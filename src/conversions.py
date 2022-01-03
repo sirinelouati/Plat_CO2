@@ -30,6 +30,7 @@ CONVERSIONS_TO_GRAMS = {
     "eau": 1,  # g / mL
     "echalot": 25,
     "endiv": 100,
+    "farin": 0.55,  # g / mL
     "huil": 0.91,  # g / mL
     "kg": 1000,
     "kiw": 100,
@@ -52,6 +53,7 @@ CONVERSIONS_TO_GRAMS = {
     "pomm golden": 150,
     "pomm": 150,
     "sachet": 11,
+    "sucr": 1.59,  # g / mL
     "tomat": 130,
     "vin": 0.99,  # g / mL
 }

@@ -82,7 +82,7 @@ def personalized_distance(a: str, b: str) -> float:
         la, lb, a, b = lb, la, b, a
 
     if (
-        ("beurre" in a) and not ("cacao" in a) and ("beurre de cacao" in b)
+        ("beurr" in a) and not ("cacao" in a) and ("beurr de cacao" in b)
     ):  # frequent pathologic case
         return 1.0
 
