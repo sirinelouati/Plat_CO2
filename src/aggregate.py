@@ -139,7 +139,9 @@ def aggregate_data(recipes: Dict, distance: Callable = DIST["per"]) -> Tuple:
 
     # transform recipes
 
-    recipes_data = pd.DataFrame(columns=["recipes", "name_prod", "weights"])
+    recipes_data = pd.DataFrame(
+        columns=["recipes", "name_prod", "weights", "nb_comments", "mark", "url"]
+    )
 
     for recipe_name, recipe in recipes.items():
         for ingredient_name, weight in recipe["ingredients"].items():
@@ -148,7 +150,9 @@ def aggregate_data(recipes: Dict, distance: Callable = DIST["per"]) -> Tuple:
                     "recipes": recipe_name,
                     "name_prod": ingredient_name,
                     "weights": weight / recipe["total_weight"],
-                    "score": recipe["score"],
+                    "nb_comments": recipe["nb_comments"],
+                    "mark": recipe["mark"],
+                    "url": recipe["url"],
                 },
                 ignore_index=True,
             )
@@ -173,7 +177,9 @@ def aggregate_data(recipes: Dict, distance: Callable = DIST["per"]) -> Tuple:
             "recipes",
             "ingredients",
             "weights",
-            "score",
+            "nb_comments",
+            "mark",
+            "url",
             "agribalyse_match",
             "distance",
             "dqr",

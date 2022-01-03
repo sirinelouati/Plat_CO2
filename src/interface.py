@@ -11,7 +11,9 @@ def preprocess_data(aggregated_data):
             "recipes": "Recette",
             "ingredients": "Ingrédient",
             "weights": "Masse (g)",
-            "score": "Fiabilité de la recette (%)",
+            "nb_comments": "Nombre de commentaires",
+            "mark": "Note de la recette",
+            "url": "Lien",
             "agribalyse_match": "Meilleure correspondance Agribalyse",
             "distance": "Fiabilité de la correspondance Agribalyse (%)",
             "dqr": "Qualité des données (1 = très fiable, 5 = peu fiable)",
@@ -49,6 +51,10 @@ def preprocess_data(aggregated_data):
         ],
     )
 
+    aggregated_data["Note de la recette"] = aggregated_data["Note de la recette"].round(
+        1
+    )
+
     aggregated_data["Masse (g)"] = (
         1000 * aggregated_data["Masse (g)"]
     ).round()  # the weights of the ingredients in grams correspond to 1 kg = 1000 g of food
@@ -56,10 +62,6 @@ def preprocess_data(aggregated_data):
     aggregated_data["Émissions de CO2 (kgCO2eq)"] = (
         aggregated_data["Émissions de CO2 (kgCO2eq)"]
     ).round(2)
-
-    aggregated_data["Fiabilité de la recette (%)"] = (
-        aggregated_data["Fiabilité de la recette (%)"] * 100
-    ).round()
 
     aggregated_data["Fiabilité de la correspondance Agribalyse (%)"] = (
         (1 - aggregated_data["Fiabilité de la correspondance Agribalyse (%)"]) * 100
@@ -92,12 +94,24 @@ def compare_recipes(data):
         2
     )  # real emissions for each ingredient for each recipe
 
+    data["Recette"] = (
+        '<a href="'
+        + data["Lien"]
+        + '"><b>'
+        + data["Recette"]
+        + "</b></a><br>"
+        + data["Nombre de commentaires"].astype(str)
+        + " commentaires • "
+        + data["Note de la recette"].astype(str)
+        + " sur 5"
+    )
+
     fig = px.bar(
         data,
         x="Recette",
         y="Émissions de CO2 (kgCO2eq) par kg de plat",
         color="Ingrédient",
-        title="Émissions de CO2 par recette (pour 1 kg)",
+        title="<b>Émissions de CO2 par recette (pour 1 kg)</b>",
         hover_data=[
             "Masse (g)",
             "Meilleure correspondance Agribalyse",

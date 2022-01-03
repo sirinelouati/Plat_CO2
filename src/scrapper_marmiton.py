@@ -239,13 +239,6 @@ def marmiton_scrapper(recipe_name: str, n: int) -> Dict:
                 "/html/body/div[2]/div[3]/main/div/div/div[1]/div[1]/div[7]/div[2]/div[1]/div[1]/div/span[1]",
             )
 
-            ## Compute the recipe's score
-            # The score take into account both the number of comments and the average mark.
-            # On Marmiton, the recipes usually get at most 1000 comments.
-            # On Marmiton, the marks go from 0 (bad recipe) to 5 (good recipe).
-            # We decided to give a weight of 60% to the number of comments and 40% to the mark.
-            # Our aggregated score goes from 0 (bad recipe) to 1 (good recipe).
-
             nb_comments = driver.find_element(
                 By.XPATH,
                 "/html/body/div[2]/div[3]/main/div/div/div[1]/div[1]/div[2]/div[2]/div[2]/a/span",
@@ -256,9 +249,6 @@ def marmiton_scrapper(recipe_name: str, n: int) -> Dict:
             )
             nb_comments_int = int(nb_comments.text.split()[0])
             mark_float = float(mark.text[: mark.text.find("/")])
-            note_fiabilite = 0.6 * min(nb_comments_int / 1000, 1) + 0.4 * (
-                mark_float / 5
-            )
 
             # Create standard output
             recipe_dict = {}
@@ -268,7 +258,8 @@ def marmiton_scrapper(recipe_name: str, n: int) -> Dict:
                 continue
             recipe_dict["ingredients"], new_missing_convertible = current_output
             recipe_dict["nb_people"] = int(nb_people.text.split("\n")[0])
-            recipe_dict["score"] = note_fiabilite
+            recipe_dict["nb_comments"] = nb_comments_int
+            recipe_dict["mark"] = mark_float
             recipe_dict["url"] = url
             recipes[driver.find_element(By.TAG_NAME, "h1").text] = recipe_dict
 
