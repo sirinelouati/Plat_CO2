@@ -10,7 +10,7 @@ from src.interface import (
     compare_ingredients,
     compare_recipes,
     preprocess_data,
-    get_html,
+    interface,
 )
 from src.scrapper_marmiton import marmiton_scrapper
 
@@ -41,7 +41,6 @@ def demo_food2emissions():
 
 
 def demo_aggregate_1():
-
     print(
         match_all_ingredients(
             dummy_output1,
@@ -50,15 +49,14 @@ def demo_aggregate_1():
 
 
 def demo_aggregate_2():
-
     print(aggregate_data(dummy_output1))
 
 
 def demo_interface(aggregated_data=dummy_aggregated_data):
     preprocessed_data = preprocess_data(aggregated_data)
-    compare_recipes(preprocessed_data)
-    compare_ingredients(preprocessed_data)
-    # get_html(preprocessed_data)
+    # compare_recipes(preprocessed_data)
+    # compare_ingredients(preprocessed_data)
+    interface(preprocessed_data)
 
 
 ########################
@@ -69,24 +67,15 @@ def demo_interface(aggregated_data=dummy_aggregated_data):
 def dummy_scrapper(recipe="gâteau au chocolat", nmax=10):
 
     output1 = marmiton_scrapper(recipe, nmax)
-    print(
-        """\n
-    ###############
-    ### OUTPUT1 ###
-    ###############
-    """
-    )
     print(output1)
     return output1
 
 
 def dummy_aggregate(output1=dummy_output1):
-
     print(aggregate_data(output1).to_dict())
 
 
 def generate_all_dummy(recipe="gâteau au chocolat", nmax=10):
-
     dummy_aggregate(dummy_scrapper(recipe, nmax))
 
 
@@ -109,4 +98,4 @@ def main(recipe="gâteau au chocolat", nmax=10):
 
 if __name__ == "__main__":
 
-    demo_interface()
+    main()

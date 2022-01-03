@@ -121,7 +121,7 @@ def compare_recipes(data):
         ],
     )
     fig.update_layout(xaxis={"categoryorder": "total descending"})
-    fig.show()
+    return fig
 
 
 def compare_ingredients(data):
@@ -152,37 +152,26 @@ def compare_ingredients(data):
         ],
     )
     fig.update_layout(xaxis={"categoryorder": "total descending"})
-    fig.show()
+    return fig
 
 
-def get_html(data):
+def interface(data):
 
-    fig_recipes = px.bar(
-        data,
-        x="Recettes",
-        y="Émissions de CO2 (kgCO2eq)",
-        color="Ingrédients",
-        title="Émissions de CO2 par recette (pour 1 kg)",
-    )
-    fig_recipes.update_layout(
-        barmode="stack", xaxis={"categoryorder": "total descending"}
-    )
+    fig1 = compare_recipes(data)
+    fig2 = compare_ingredients(data)
 
-    fig_ingredients = px.bar(
-        data,
-        x="Ingrédients",
-        y="Émissions de CO2 (kgCO2eq)",
-        color="Type d'émission de CO2",
-        title="Émissions de CO2 par ingrédient (pour 1 kg)",
-    )
-    fig_ingredients.update_layout(
-        barmode="stack", xaxis={"categoryorder": "total descending"}
-    )
+    with open("data/interface.html", "w") as interface:
 
-    with open("data/dashboard.html", "w") as dashboard:
-
-        dashboard.write("<html><head></head><body>" + "\n")
-        for fig in (fig_recipes, fig_ingredients):
+        interface.write("<html><head></head><body>" + "\n")
+        for fig in (fig1, fig2):
             inner_html = fig.to_html().split("<body>")[1].split("</body>")[0]
-            dashboard.write(inner_html)
-        dashboard.write("</body></html>" + "\n")
+            interface.write(inner_html)
+        interface.write("</body></html>" + "\n")
+
+    print(
+        """
+    ###################################################################
+    ### L'interface a été générée avec succès : data/interface.html ###
+    ###################################################################
+    """
+    )
