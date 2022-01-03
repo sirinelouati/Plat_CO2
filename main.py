@@ -4,10 +4,20 @@ from src.food2emissions import (
     compare_methods,
     compute_emissions,
 )
-from src.dummy import dummy_output1
-from src.aggregate import match_all_ingredients, compute_recipes_figures
+from src.dummy import dummy_output1, dummy_aggregated_data
+from src.aggregate import match_all_ingredients, aggregate_data
+from src.interface import (
+    compare_ingredients,
+    compare_recipes,
+    preprocess_data,
+    interface,
+)
 from src.scrapper_marmiton import marmiton_scrapper
-from src.utils import DIST
+
+
+######################
+### DEMONSTRATIONS ###
+######################
 
 
 def demo_food2emissions():
@@ -31,7 +41,6 @@ def demo_food2emissions():
 
 
 def demo_aggregate_1():
-
     print(
         match_all_ingredients(
             dummy_output1,
@@ -40,32 +49,53 @@ def demo_aggregate_1():
 
 
 def demo_aggregate_2():
-    emissions, uncertainties = compute_recipes_figures(
-        marmiton_scrapper("gâteau au chocolat", 6)
-    )
-    print(
-        """\n
-    #################
-    ### EMISSIONS ###
-    #################
-    """
-    )
-    print(emissions)
-    print(
-        """\n
-    #####################
-    ### UNCERTAINTIES ###
-    #####################
-    """
-    )
-    print(uncertainties)
+    print(aggregate_data(dummy_output1))
 
 
-def demo_scrapper():
-    # print(marmiton_scrapper("tarte aux pommes", 4))
-    print(marmiton_scrapper("gâteau au chocolat", 4))
+def demo_interface(aggregated_data=dummy_aggregated_data):
+    preprocessed_data = preprocess_data(aggregated_data)
+    # compare_recipes(preprocessed_data)
+    # compare_ingredients(preprocessed_data)
+    interface(preprocessed_data)
+
+
+########################
+### DUMMY GENERATORS ###
+########################
+
+
+def dummy_scrapper(recipe="gâteau au chocolat", nmax=10):
+
+    output1 = marmiton_scrapper(recipe, nmax)
+    print(output1)
+    return output1
+
+
+def dummy_aggregate(output1=dummy_output1):
+    print(aggregate_data(output1).to_dict())
+
+
+def generate_all_dummy(recipe="gâteau au chocolat", nmax=10):
+    dummy_aggregate(dummy_scrapper(recipe, nmax))
+
+
+################
+### PIPELINE ###
+################
+
+
+def main(recipe="gâteau au chocolat", nmax=10):
+
+    scrapper_result = marmiton_scrapper(recipe, nmax)
+
+    aggregated_data = aggregate_data(scrapper_result)
+
+    _, ingredients_data, cross_emissions_data = preprocess_data(aggregated_data)
+
+    compare_recipes(cross_emissions_data)
+    compare_ingredients(ingredients_data)
 
 
 if __name__ == "__main__":
 
-    demo_aggregate_2()
+    main()

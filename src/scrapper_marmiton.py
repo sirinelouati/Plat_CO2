@@ -1,3 +1,4 @@
+from math import ceil
 import re
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -60,11 +61,12 @@ def find_closest_match(product_name: str, distance: Callable = DIST["per"]) -> s
     )
 
 
-def make_output(content: str) -> Dict:
+def make_output(content: str, verbose: bool = False) -> Dict:
     """makes a standard dictionnary from the raw text corresponding to a given recipe
 
     Args:
         content (str): raw text extracted from Marmiton's html page
+        verbose (bool): True to display any html list of ingredients that cannot be interpreted
 
     Returns:
         Dict: {"ingredients": Dict, "nb_people": int, "score": float, "url": str}
@@ -76,8 +78,24 @@ def make_output(content: str) -> Dict:
         []
     )  # stores the ingredients that are missing from our conversion list
 
+    missing_quantity = []  # stores the indices where no quantity has been provided
+    for i in range(ceil(len(content) / 2)):
+        if not re.match(r"\d", content[2 * i - len(missing_quantity)]):
+            missing_quantity.append(2 * i)
+
+    for i, j in enumerate(missing_quantity):
+        content.insert(i + j, "1")  # fills the missing quantities with 1
+
+    if len(content) % 2 == 1:
+        if verbose:
+            print(
+                "\r"
+                + f"[INFO] Cannot interpret the following list of ingredients : {content}\n"
+            )
+        return None  # cannot process the list of ingredients
+
     for i in range(len(content) // 2):
-        key = content[2 * i + 1]
+        key = content[2 * i + 1].lstrip().rstrip()
         if key.startswith("de "):
             key = key[3:]
         elif key.startswith("d'"):
@@ -85,7 +103,7 @@ def make_output(content: str) -> Dict:
         if (
             "+" in key or "(" in key
         ):  # for ingredients such as butter (eg: "100 g (+ 10 g pour beurrer le moule)")
-            key = key.split("+")[0].split("(")[0]
+            key = key.split(" +")[0].split(" (")[0]
 
         value = content[2 * i].split("  ")
         raw_quantity = re.match(
@@ -118,7 +136,7 @@ def make_output(content: str) -> Dict:
                     * quantity
                 )
                 unit = "g"
-                missing_convertible.append((product, closest_match))
+                missing_convertible.append((key, closest_match))
         elif unit == "":  # eg : "5 pommes"
             if product in CONVERSIONS_TO_GRAMS:
                 quantity = CONVERSIONS_TO_GRAMS[product] * quantity
@@ -221,13 +239,6 @@ def marmiton_scrapper(recipe_name: str, n: int) -> Dict:
                 "/html/body/div[2]/div[3]/main/div/div/div[1]/div[1]/div[7]/div[2]/div[1]/div[1]/div/span[1]",
             )
 
-            ## Compute the recipe's score
-            # The score take into account both the number of comments and the average mark.
-            # On Marmiton, the recipes usually get at most 1000 comments.
-            # On Marmiton, the marks go from 0 (bad recipe) to 5 (good recipe).
-            # We decided to give a weight of 60% to the number of comments and 40% to the mark.
-            # Our aggregated score goes from 0 (bad recipe) to 1 (good recipe).
-
             nb_comments = driver.find_element(
                 By.XPATH,
                 "/html/body/div[2]/div[3]/main/div/div/div[1]/div[1]/div[2]/div[2]/div[2]/a/span",
@@ -238,9 +249,6 @@ def marmiton_scrapper(recipe_name: str, n: int) -> Dict:
             )
             nb_comments_int = int(nb_comments.text.split()[0])
             mark_float = float(mark.text[: mark.text.find("/")])
-            note_fiabilite = 0.6 * min(nb_comments_int / 1000, 1) + 0.4 * (
-                mark_float / 5
-            )
 
             # Create standard output
             recipe_dict = {}
@@ -250,7 +258,8 @@ def marmiton_scrapper(recipe_name: str, n: int) -> Dict:
                 continue
             recipe_dict["ingredients"], new_missing_convertible = current_output
             recipe_dict["nb_people"] = int(nb_people.text.split("\n")[0])
-            recipe_dict["score"] = note_fiabilite
+            recipe_dict["nb_comments"] = nb_comments_int
+            recipe_dict["mark"] = mark_float
             recipe_dict["url"] = url
             recipes[driver.find_element(By.TAG_NAME, "h1").text] = recipe_dict
 

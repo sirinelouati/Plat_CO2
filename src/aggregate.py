@@ -124,97 +124,76 @@ def match_all_ingredients(
 ######################################################
 
 
-def compute_recipes_figures(recipes: Dict, distance: Callable = DIST["per"]) -> Tuple:
+def aggregate_data(recipes: Dict, distance: Callable = DIST["per"]) -> Tuple:
 
     products_data = import_data_from_agribalyse()
-    ingredients = match_all_ingredients(recipes=recipes, distance=distance)
+    ingredients_data = match_all_ingredients(recipes=recipes, distance=distance)
 
-    ingredients_figures = (
-        ingredients.merge(
-            products_data, left_on="agribalyse_match", right_on="name_prod", how="left"
-        )
-        .drop(["agribalyse_match", "name_prod_y", "clean_name_prod"], axis=1)
-        .rename(columns={"name_prod_x": "product"})
-    )
-
-    # compute an single uncertainty value for each ingredient
-
-    ingredients_figures["uncertainty"] = (
-        ingredients_figures["distance"] / 2 + (ingredients_figures["dqr"] - 1) / 8
-    )
-
-    # normalize the weight for 1 person
+    # compute the total weight of each recipe
 
     for recipe_name, recipe in recipes.items():
-        for ingredient, weight in recipe["ingredients"].items():
-            recipes[recipe_name]["ingredients"][ingredient] = (
-                weight / recipe["nb_people"]
+        total_weight = 0
+        for weight in recipe["ingredients"].values():
+            total_weight += weight
+        recipes[recipe_name]["total_weight"] = total_weight
+
+    # transform recipes
+
+    recipes_data = pd.DataFrame(
+        columns=["recipes", "name_prod", "weights", "nb_comments", "mark", "url"]
+    )
+
+    for recipe_name, recipe in recipes.items():
+        for ingredient_name, weight in recipe["ingredients"].items():
+            recipes_data = recipes_data.append(
+                {
+                    "recipes": recipe_name,
+                    "name_prod": ingredient_name,
+                    "weights": weight / recipe["total_weight"],
+                    "nb_comments": recipe["nb_comments"],
+                    "mark": recipe["mark"],
+                    "url": recipe["url"],
+                },
+                ignore_index=True,
             )
-            recipes[recipe_name]["nb_people"] = 1
 
-    emissions_figures = pd.DataFrame()
-    uncertainty_figures = pd.DataFrame()
+    # aggregate data
 
-    print("\nProcessing recipes...\n")
-    for (recipe_name, recipe,) in tqdm(
-        recipes.items(), ncols=100
-    ):  # might be optimized (but not too slow anyway...)
-
-        emission_denominator = 0
-        uncertainty_denominators = {
-            emission_type: 0 for emission_type in EMISSION_TYPES
-        }
-
-        for ingredient, weight in recipe["ingredients"].items():
-            emission_denominator += (
-                weight
-                * ingredients_figures[
-                    ingredients_figures["product"] == ingredient
-                ].iloc[0]["uncertainty"]
-            )
-            for emission_type in EMISSION_TYPES:
-                uncertainty_denominators[emission_type] += (
-                    weight
-                    * ingredients_figures[
-                        ingredients_figures["product"] == ingredient
-                    ].iloc[0][emission_type]
-                )
-
-        recipe_emissions = {"recipe": recipe_name}
-        recipe_uncertainty = {"recipe": recipe_name}
-        for emission_type in EMISSION_TYPES:
-            numerator = 0
-            for ingredient, weight in recipe["ingredients"].items():
-                numerator += (
-                    weight
-                    * ingredients_figures[
-                        ingredients_figures["product"] == ingredient
-                    ].iloc[0]["uncertainty"]
-                    * ingredients_figures[
-                        ingredients_figures["product"] == ingredient
-                    ].iloc[0][emission_type]
-                )
-            recipe_uncertainty[emission_type] = (
-                numerator / uncertainty_denominators[emission_type]
-            )
-            recipe_emissions[emission_type] = numerator / emission_denominator
-
-        emissions_figures = emissions_figures.append(
-            recipe_emissions, ignore_index=True
+    output = (
+        recipes_data.merge(ingredients_data, on=["name_prod"])
+        .merge(
+            products_data,
+            left_on=["agribalyse_match"],
+            right_on=["name_prod"],
+            how="left",
         )
-        uncertainty_figures = uncertainty_figures.append(
-            recipe_uncertainty, ignore_index=True
-        )
+        .drop(columns=["name_prod_y", "clean_name_prod"])
+        .rename(columns={"name_prod_x": "ingredients"})
+    )
 
-    emissions_figures["total"] = emissions_figures[EMISSION_TYPES].sum(axis=1)
+    output = pd.melt(
+        output,
+        id_vars=[
+            "recipes",
+            "ingredients",
+            "weights",
+            "nb_comments",
+            "mark",
+            "url",
+            "agribalyse_match",
+            "distance",
+            "dqr",
+        ],
+        value_vars=[
+            "agriculture_co2",
+            "transformation_co2",
+            "packaging_co2",
+            "transport_co2",
+            "distribution_co2",
+            "consumption_co2",
+        ],
+        var_name="emission_type",
+        value_name="co2",
+    )
 
-    prod_figures = pd.DataFrame()
-    for emission_type in EMISSION_TYPES:
-        prod_figures[emission_type] = (
-            emissions_figures[emission_type]
-            * uncertainty_figures[emission_type]
-            / emissions_figures["total"]
-        )
-    uncertainty_figures["weighted_average"] = prod_figures[EMISSION_TYPES].sum(axis=1)
-
-    return (emissions_figures, uncertainty_figures)
+    return output
