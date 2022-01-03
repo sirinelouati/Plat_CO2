@@ -90,10 +90,9 @@ def main(recipe="gâteau au chocolat", nmax=10):
 
     aggregated_data = aggregate_data(scrapper_result)
 
-    _, ingredients_data, cross_emissions_data = preprocess_data(aggregated_data)
+    data = preprocess_data(aggregated_data)
 
-    compare_recipes(cross_emissions_data)
-    compare_ingredients(ingredients_data)
+    interface(data)
 
 
 if __name__ == "__main__":
