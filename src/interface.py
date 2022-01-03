@@ -16,7 +16,7 @@ def preprocess_data(aggregated_data):
             "url": "Lien",
             "agribalyse_match": "Meilleure correspondance Agribalyse",
             "distance": "Fiabilité de la correspondance Agribalyse (%)",
-            "dqr": "Qualité des données (1 = très fiable, 5 = peu fiable)",
+            "dqr": "Qualité des données (1 : très fiable, 5 : peu fiable)",
             "emission_type": "Type d'émissions de CO2",
             "co2": "Émissions de CO2 (kgCO2eq)",
         }
@@ -68,8 +68,8 @@ def preprocess_data(aggregated_data):
     ).round()
 
     aggregated_data[
-        "Qualité des données (1 = très fiable, 5 = peu fiable)"
-    ] = aggregated_data["Qualité des données (1 = très fiable, 5 = peu fiable)"].round(
+        "Qualité des données (1 : très fiable, 5 : peu fiable)"
+    ] = aggregated_data["Qualité des données (1 : très fiable, 5 : peu fiable)"].round(
         2
     )
 
@@ -116,7 +116,7 @@ def compare_recipes(data):
             "Masse (g)",
             "Meilleure correspondance Agribalyse",
             "Fiabilité de la correspondance Agribalyse (%)",
-            "Qualité des données (1 = très fiable, 5 = peu fiable)",
+            "Qualité des données (1 : très fiable, 5 : peu fiable)",
             "Émissions de CO2 (kgCO2eq) par kg d'ingrédient",
         ],
     )
@@ -126,12 +126,30 @@ def compare_recipes(data):
 
 def compare_ingredients(data):
 
+    data = data[
+        [
+            "Ingrédient",
+            "Meilleure correspondance Agribalyse",
+            "Fiabilité de la correspondance Agribalyse (%)",
+            "Qualité des données (1 : très fiable, 5 : peu fiable)",
+            "Type d'émissions de CO2",
+            "Émissions de CO2 (kgCO2eq)",
+        ]
+    ]
+
+    data = data.drop_duplicates()
+
     fig = px.bar(
         data,
         x="Ingrédient",
         y="Émissions de CO2 (kgCO2eq)",
         color="Type d'émissions de CO2",
-        title="Émissions de CO2 par ingrédient (pour 1 kg)",
+        title="<b>Émissions de CO2 par ingrédient (pour 1 kg)</b>",
+        hover_data=[
+            "Meilleure correspondance Agribalyse",
+            "Fiabilité de la correspondance Agribalyse (%)",
+            "Qualité des données (1 : très fiable, 5 : peu fiable)",
+        ],
     )
     fig.update_layout(xaxis={"categoryorder": "total descending"})
     fig.show()
