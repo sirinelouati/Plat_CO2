@@ -31,7 +31,7 @@ def match_all_ingredients(
     Args:
         recipes (Dict): output of the scrappers
         distance (Callable): function that computes a distance between two strings. Its value is 0
-            for a perfect match, 1 in the worst case. Defaults to Levenshtein's distance.
+            for a perfect match, 1 in the worst case. Defaults to the personalized distance.
 
     Returns:
         pd.DataFrame: best emission figures for each ingredient
@@ -124,7 +124,17 @@ def match_all_ingredients(
 ######################################################
 
 
-def aggregate_data(recipes: Dict, distance: Callable = DIST["per"]) -> Tuple:
+def aggregate_data(recipes: Dict, distance: Callable = DIST["per"]) -> pd.DataFrame:
+    """Agregates the data related to the recipes, the ingredients and the carbon emissions
+
+    Args:
+        recipes (Dict): scrapper's output
+        distance (Callable, optional): function that computes a distance between two strings. Its value is 0
+            for a perfect match, 1 in the worst case. Defaults to the personalized distance.. Defaults to DIST["per"].
+
+    Returns:
+        pd.DataFrame: aggregated data
+    """
 
     products_data = import_data_from_agribalyse()
     ingredients_data = match_all_ingredients(recipes=recipes, distance=distance)
