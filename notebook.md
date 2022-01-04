@@ -68,7 +68,7 @@ L'une des premières difficultés survenues lors de l'implémentation du scrappe
 *Limites du Scrapper*
 
 Dans la partie scrapping de notre projet certaines simplifications ont été nécéssaires  pour mener à bien notre projet. Tout d'abord, nous avons fait le choix de nous restreindre aux recettes issu du site "Marmiton", du fait de la variété de recettes associées à un plat.
-Cependant il aurait pu etre interressant d'utiliser des recettes de diffrénts sites mais pour des raisons de simplicité et de complexité algorithme nous nous sommes concentrés sur les recettes proposées par Marmiton.
+Cependant il aurait pu etre interressant d'utiliser des recettes de différents sites mais pour des raisons de simplicité et de complexité algorithme nous nous sommes concentrés sur les recettes proposées par Marmiton.
 De plus, notre scrapper se devait de renvoyer un dictionnaire dans lequel chaque ingrédients était associé à son poids correspondnat dans la recette. Il a donc fallu procéder à des conversions et à certaines simplications pour rendre compte du poids de certaines quantités qui ne sont exprimées en gramme, par exemple les ingrédients du type (' 1 sachet de levure ', ' 1 cuillers à café ' sont automatiquement asssocié à un poids de 11 grammes et 15 grammes).
 <!-- #endregion -->
 
@@ -84,8 +84,23 @@ main()
 ```
 
 *But*
-calcul empreinte carbone en les asociant à la bonne base agribalyse ...
-Difficulté à surmonter associé les bons ingrédients ...
+
+A partir de la sortie Marmiton obtenue via le scrapper, comment peut-on obtenir l'empreinte carbone d'une recette ?
+
+C'est l'objectif de la deuxième étape qui consiste à chercher les ingrédients de la base Agribalyse qui correspondent le mieux aux ingrédients de notre recette. Pour cela, nous utilisons des distances préexistantes comme le distance de Levenstein ou la distance issue du package fuzzywuzzy.
+
+*Difficultés survenues*
+
+Les distances utilisées donnent des matching pas très satisfaisants. En effet, en calculant des indices d'incertitudes, on se rend compte que les ingrédients disponibles dans Agribalyse ne correpondent pas à ceux de notre recette. 
+Pour cela, nous créons une focntion distance personnalisée à la main qui renvoit de meilleurs résultats
+
+*Limites*
+
+Malgré l'utilisation d'une distance personnalisée, on observe toujours une incertitude au niveau du matching entre les ingrédients du site Agribalyse et ceux de la recette Marmiton. Par exemple, pour l'ingrédient "eau", l'ingrédient du site "Agribalyse" qui correspond le mieux est l'ingrédient "eau de vie" qui ne corresspond pas à ce qu'on attend.
+
+
+Une idée d'amélioration serait potentiellement d'introduire de nouvelles distances ou d'utiliser du NLP pour optimiser le matching 
+
 
 ```python
 from src.aggregate import match_all_ingredients, aggregate_data
