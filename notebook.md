@@ -57,7 +57,7 @@ dummy_output1
 ```
 
 <!-- #region -->
-*L'idée de l'étape scraping*
+*L'idée de l'étape 1*
 
 Quand un utilisateur tape "Gâteau au chocolat", notre scraper visite le site marmiton, en extrait plusieurs recettes associées à "Gâteau au chocolat" et les renvoient sous forme de dictionnaire de dictionnaires contenant respectivement les ingrédients de la recette (convertis en grammes), son nombre de personnes, son nombre de commentaires, sa note marmiton et son lien url.
 
@@ -88,10 +88,44 @@ dummy_aggregated_data
 main()
 ```
 
-*But*
-calcul empreinte carbone en les asociant à la bonne base agribalyse ...
-Difficulté à surmonter associé les bons ingrédients ...
+*L'idée de l'étape 2*
 
+A partir de la sortie Marmiton obtenue via le scrapper, comment peut-on obtenir l'empreinte carbone d'une recette ?
+
+C'est l'objectif de la deuxième étape! Cette dernière consiste à chercher les ingrédients de la base Agribalyse qui correspondent le mieux aux ingrédients de notre recette. Pour cela, nous utilisons des distances préexistantes comme le distance de Levenstein ou la distance issue du package fuzzywuzzy.
+
+*Difficultés survenues*
+
+Ces premières distances utilisées ne nous satisfaisaient pas totalement. En effet, en calculant des indices d'incertitudes, on se rendait rapidement compte que les ingrédients disponibles dans Agribalyse ne correpondaient pas exactement à ceux de notre recette. 
+Ainsi, nous avons décidé d'implementer une fonction personnalisée de distance  qui renvoit de meilleurs résultats.
+
+*Limites*
+
+Malgré l'utilisation d'une distance personnalisée, on observe toujours une légère incertitude au niveau du matching entre les ingrédients du site Agribalyse et ceux de la recette Marmiton. Par exemple, pour l'ingrédient "eau", l'ingrédient du site "Agribalyse" qui correspond le mieux est l'ingrédient "eau de vie" qui ne corresspond pas à ce qu'on attend.
+
+
+Une idée d'amélioration serait potentiellement d'introduire de nouvelles distances ou d'utiliser du NLP pour optimiser le matching 
+
+
+```python
+from src.aggregate import match_all_ingredients, aggregate_data
+match_all_ingredients
+```
+
+## Etape 3: Visualisation graphique des données
+
+*L'idée de l'étape 3*
+
+L'objectif de cette dernière partie est de visualiser graphiquement l'émission carbone de tous les ingrédients des recettes correspondant à notre plat disponibles sur le site Marmitton. Pour cela, nous créons une interface graphique de type html qui permet de visualiser à la fois l'émission carbone de chaque recette où pour chaque ingrédient on précise la meilleure correspondance avec les ingrédients du site Agribalyse et le degré de fiabilité de cette correspondance. Par ailleurs, nous visualisons également l'émission carbone de chaque ingrédient par rapport à son type d'émission à savoir: Agriculture, Transformation, Emballage, Transport, Distribution, Consommation.
+
+*Difficultés survenues*
+
+L'un des enjeux de notre projet est de renvoyer une interface graphique compréhensible et accessible pour l'utilisateur. Ainsi, nous avons du implementer une interface nécessitant un usage du langage html pour obtenir un résultat ergonomique.
+
+
+*Limites*
+
+Il aurait été possible de développer l'aspect interactif du projet via l'implementation d'une  barre de recherches sous format java script.
 ```python
 from src.aggregate import match_all_ingredients, aggregate_data
 match_all_ingredients
