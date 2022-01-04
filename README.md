@@ -5,7 +5,7 @@
 -----------------
 
 
-# Plat_CO2
+# Plat CO2
 Ce projet est réalisé dans le cadre du cours de python de Lino Galiana pour l'année 2021-2022.
 
 Il s'agit d'un programme qui permet de comparer les émissions carbone des recettes d'un plat fourni par l'utilisateur à partir du site "Marmiton"
@@ -134,15 +134,31 @@ Finalement, nous retournons l'estimation d'emission carbone d'un produit à part
 
 3. La dernière partie est une visualisation graphique des données.
 
-Nous commençons par obtenir les émissions carbone de tous les ingrédients fournis lors de la première étape grace à la fonction `compute_emissions` implémentée à la deuxième étape.
+La première focntion que nous implémentons `preprocess_data` permet de nettoyer la base de sortie de l'étape d'aggrégation. En effet, on renomme les colonnes en français et en format plus compréhensible, on rajoute des majuscules et les unités corrspondantes, on arrondit les chiffres et on considére que le poids des ingrédients en gramme correspond à celui nécessaire pour préparer 1 kilo du plat en question.
 
-Puis nous calculons d'autres chiffres tel que l'incertitude pour chaque ingrédient, nous normalisons également les recettes pour une seule personne.
+Par la suite, nous implémentons les deux fonctions primordiales de cette dernière partie:
 
-Ensuite nous calculons les estimateurs aggrégés d'emission carbone et d'incertitude pour chaque recette et nous en faisant des représentations graphiques
+- la fonction `compare_recipes` permet de renvoyer une première figure d'un histogramme où chaque colonne correspond à une recette du plat en question.
+
+```python
+from src.interface import compare_recipes
+```
+- la fonction `compare_ingredients` permet de renvoyer une seconde figure d'un hidtogramme où chauqe colonne correspond à un ingrédient parmi tous les ingrédients confondus de toutes les recettes.
+
+```python
+from src.interface import compare_ingredients
+```
+
+Le premier histogramme permet de rendre compte des recettes les plus carbonées et les moins carbonées. Et parfois, certaines recettes peuvent être carbonées à cause d'un ingrédient en particulier sans comprendre pourquoi cet ingrédient est très carboné. Pour cela, le second histogramme permet d'expliquer ce point et voir les différents postes d'émissions de chaque ingrédient.
+
+La dernière fonction `interface` permet de fusionner les deux histogrammes sous format html. Sur la page html, en passant la souris sur chaque recette, on peut visualiser chaque ingrédient qui la compose avec des informations complémentaires: la recette en question, le nombre de commentaires et la note attribuée sur le site Marmiton, les émissions carbone de l'ingrédient et du plat, la quantité de l'ingrédient en gramme pour préparer un kilo du plat, la meilleure correspondance avec la base Agribalyse et le dregré de fiabilité de cette correspondance.
+
+Par ailleurs, en cliquant sur le nom de chaque recette en bas du premier histogramme, cela permet de se diriger vers le site Marmiton et d'ouvrir la page de la recette en question. 
+
+En parcourant le deuxième histogramme à la souris, on obtient également les mêmes informations supplémentaires que pour le premier et en précisant également les proportions des postes d'émission carbone de chaque ingrédient.
 
 
-## Contribution
 
 
 
-## Licence
+
