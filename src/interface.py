@@ -1,10 +1,16 @@
 import pandas as pd
 import plotly.express as px
-from plotly.subplots import make_subplots
-from src.aggregate import EMISSION_TYPES
 
 
-def preprocess_data(aggregated_data):
+def preprocess_data(aggregated_data : pd.DataFrame) -> pd.DataFrame:
+    """prettify the data to make it more readable
+
+    Args:
+        aggregated_data (pd.DataFrame): aggregated data
+
+    Returns:
+        pd.DataFrame: prettified data
+    """
 
     aggregated_data = aggregated_data.rename(
         columns={
@@ -76,7 +82,15 @@ def preprocess_data(aggregated_data):
     return aggregated_data
 
 
-def compare_recipes(data):
+def compare_recipes(data : pd.DataFrame) -> px.bar:
+    """display a bar plot comparing the different recipes
+
+    Args:
+        data (pd.DataFrame): prettified data
+
+    Returns:
+        px.bar: plotly figure ready to be displayed
+    """
 
     data = data.drop("Type d'émissions de CO2", axis=1)
 
@@ -124,7 +138,15 @@ def compare_recipes(data):
     return fig
 
 
-def compare_ingredients(data):
+def compare_ingredients(data : pd.DataFrame) -> px.bar:
+    """display a bar plot comparing the different ingredients
+
+    Args:
+        data (pd.DataFrame): prettified data
+
+    Returns:
+        px.bar: plotly figure ready to be displayed
+    """
 
     data = data[
         [
@@ -155,7 +177,15 @@ def compare_ingredients(data):
     return fig
 
 
-def interface(data):
+def interface(data : pd.DataFrame) -> None:
+    """create a html file combining two Plotly figures
+
+    Args:
+        data (pd.DataFrame): prettified data
+
+    Returns:
+        None
+    """
 
     fig1 = compare_recipes(data)
     fig2 = compare_ingredients(data)
