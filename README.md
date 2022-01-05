@@ -24,6 +24,10 @@ Le scrapper a été codé grâce au module `selenium` et fonctionne avec le brow
 
 Tout d'abord, il commence par se connecter sur la page d'accueil du site Marmiton et par accepter les cookies s'ils existent. Il lance ensuite une recherche à partir du nom de la recette fourni par l'utilisateur, puis se dirige vers les résultats de recherche et sur les recettes correspondantes.
 
+<div align="center">
+  <img src="img/view_marmiton.png"><br>
+</div>
+
 Ensuite, à partir de chaque recette, on crée un dictionnaire dont la clé est l'ingrédient et la valeur une liste contenant la quantité et son unité.
 Par exemple pour une recette de gâteau au chocolat, on obtient:
 
