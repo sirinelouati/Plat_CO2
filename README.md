@@ -10,7 +10,7 @@ Il s'agit d'un programme qui permet de comparer les émissions carbone des recet
 
 Dans le notebook **`notebook.ipynb`** se trouvent les instructions détaillées pour installer les éléments requis et pour utiliser le programme.
 
-## 1. Extraction de recettes en scrappant le site Marmiton
+## Étape 1 : extraction de recettes en scrappant le site Marmiton
 
 ### Scrapping
 
@@ -117,7 +117,7 @@ Nous complétons le dictionnaire des ingrédients par le nom de la recette, le n
 }
 ```
 
-## Étape 2. Identification des ingrédients et calcul de leur empreinte carbone grâce à la base Agribalyse
+## Étape 2 : identification des ingrédients et calcul de leur empreinte carbone grâce à la base Agribalyse
 
 Nous commençons par importer la base de données à partir du site [Agribalyse]("https://koumoul.com/s/data-fair/api/v1/datasets/agribalyse-detail-etape/raw").
 
