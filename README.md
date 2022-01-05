@@ -129,7 +129,7 @@ Finalement, nous retournons l'estimation d'émission carbone d'un produit à par
 
 ## Étape 3 : agrégation des données
 
-Cette étape consiste simplement à agréger les sources de données entre elles. À ce stade, les données sont réparties en 3 dataframes que la phrase d'agrégation fusionne (`merge`), nettoie (`rename`, `drop`) et fond `melt`. Ces 3 dataframes sont :
+Cette étape consiste simplement à agréger les sources de données entre elles. À ce stade, les données sont réparties en 3 dataframes que la phrase d'agrégation fusionne (`merge`), nettoie (`rename`, `drop`) et fond (`melt`). Ces 3 dataframes sont :
 
 - `products_data` : c'est le dataframe obtenu à l'import des données d'Agribalyse (voir étape 2).
 
