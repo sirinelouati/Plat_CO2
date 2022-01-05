@@ -1,6 +1,7 @@
-# Plat CO2
+# **Projet Python 2A**
+Jean-Baptiste Laval • Sirine Louati • Hadrien Lolivier
 
-Ce projet est réalisé dans le cadre du cours de python de Lino Galiana pour l'année 2021-2022.
+*Ce projet est réalisé dans le cadre du cours de Python de Lino Galiana pour l'année 2021-2022.*
 
 Il s'agit d'un programme qui permet de comparer les émissions carbone des recettes d'un plat fourni par l'utilisateur à partir du site Marmiton.
 
