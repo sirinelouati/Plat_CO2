@@ -1,10 +1,3 @@
-<div align="center">
-  <img src="https://www.planete-energies.com/sites/default/files/styles/media_full_width_940px/public/thumbnails/image/visuel_emissions_co2_small.jpg?itok=Rrh1f3Qy"><br>
-</div>
-
------------------
-
-
 # Plat CO2
 
 Ce projet est réalisé dans le cadre du cours de python de Lino Galiana pour l'année 2021-2022.
@@ -74,7 +67,7 @@ Afin de comparer deux chaînes de caractères, on commence par les normaliser gr
 Ensuite on calcule la distance entre ces deux chaînes. Pour cela, nous avons testé 4 méthodes différentes, stockées dans le dictionnaire `DIST` défini dans le fichier **`utils.py`** du dossier **`src`**. Afin de mieux les comparer, nous les avons normalisées de sorte qu'elles vaillent toutes 0 lorsque deux chaînes sont très proches et 1 lorsqu'elles sont très différentes. On identifie chaque méthode avec un trigramme. Les 4 méthodes sont :
 - **Gestalt Pattern Matching (GPM)**, implémentée par le module `difflib` : consiste à comparer la longueur de la séquence commune maximale aux deux chaines de caractères aux longueurs des deux chaînes
 - **Partial Levenshtein distance (FWZ)**, implémentée par le module `fuzzywuzzy` : cacule la distance de Levenshtein entre la chaîne la plus courte et tous les sous-chaînes de la chaîne la plus longue de même longueur que la chaîne la plus courte, et ensuite prend le minimum de toutes ces valeurs.
-- **Standard Levenshtein ditance (LEV)**, implémentée par le module `nltk` : nombre minimal d'opérations parmi un ajout, une suppression ou un remplacement permettant de transformer une chaîne en l'autre
+- **Standard Levenshtein distance (LEV)**, implémentée par le module `nltk` : nombre minimal d'opérations parmi un ajout, une suppression ou un remplacement permettant de transformer une chaîne en l'autre
 - **une distance personnalisée (PER)**, que nous avons nous-mêmes conçue et dont nous détaillons le principe ci-dessous.
 
 Pour deux chaînes de caractères données, la distance PER fonctionne en deux temps : d'abord elle identifie la similitude globale des deux chaînes en leur attribuant un intervalle de valeurs d'amplitude 0.2, puis elle affine au sein de chaque intervalle. Les différents cas sont les suivants :
