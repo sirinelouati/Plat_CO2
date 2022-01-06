@@ -40,7 +40,7 @@ Par exemple pour une recette de gâteau au chocolat, on obtient:
 
 ### Interprétation des ingrédients
 
-On peut alors nettoyer le nom de ingrédients, par exemple en enlevant " (+ 10 g pour beurrer le moule)", puis convertir toutes les unités en grammes (par exemple les sachets de levure, le nombre d'oeufs ou encore les autres unités). Pour cela, nous créons des tables de conversion (dans **`conversions.py`** du dossier **`src`**) permettant de convertir le nombre de fruits et de légumes, les paquets, sachets, tasses, verres, cuillères à café, cuillères à soupe etc en grammes. La procédure est la suivante :
+On peut alors nettoyer le nom des ingrédients, par exemple en enlevant " (+ 10 g pour beurrer le moule)", puis convertir toutes les unités en grammes (par exemple les sachets de levure, le nombre d'oeufs ou encore les autres unités). Pour cela, nous créons des tables de conversion (dans **`conversions.py`** du dossier **`src`**) permettant de convertir le nombre de fruits et de légumes, les paquets, sachets, tasses, verres, cuillères à café, cuillères à soupe etc en grammes. La procédure est la suivante :
 - on identifie une quantité (ex : 2), une unité (ex : tasse) et un ingrédient (ex : farine)
 - on convertit la quantité en flottant (ex : 1 1/2 --> 1.5)
 - si l'unité est dans notre table de conversion en grammes (ex : pincée), alors on la convertit en grammes et on la multiplie par la quantité
@@ -151,7 +151,7 @@ C'est cette information que contient le dataframe `ingredients`.
 
 ## Étape 4 : affichage synthétisé des résultats
 
-Tout d'abord, il s'agit de mettre en forme la dataframe contenant les données agrégées, de sorte à le rendre plus lisible et présentable : on renomme les colonnes en français et en format plus compréhensible, on rajoute des majuscules et les unités corrspondantes, on arrondit les valeurs, en ayant pris soin de rapporter au préalable les grandeurs extensives à 1 kg de plat.
+Tout d'abord, il s'agit de mettre en forme le dataframe contenant les données agrégées, de sorte à le rendre plus lisible et présentable : on renomme les colonnes en français et en format plus compréhensible, on rajoute des majuscules et les unités correspondantes, on arrondit les valeurs, en ayant pris soin de rapporter au préalable les grandeurs extensives à 1 kg de plat.
 
 Par la suite, nous implémentons les deux fonctions primordiales de cette dernière partie, dans le fichier **`interface.py`** du dossier **`src`** :
 
@@ -161,7 +161,7 @@ Par la suite, nous implémentons les deux fonctions primordiales de cette derni�
   <img src="img/view_recipes.png"><br>
 </div>
 
-- la fonction `compare_ingredients` permet de renvoyer un second histogramme où chauqe colonne correspond à un ingrédient parmi tous les ingrédients confondus de toutes les recettes.
+- la fonction `compare_ingredients` permet de renvoyer un second histogramme où chaque colonne correspond à un ingrédient parmi tous les ingrédients confondus de toutes les recettes.
 
 <div align="center">
   <img src="img/view_ingredients.png"><br>
