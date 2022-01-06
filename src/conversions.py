@@ -31,6 +31,7 @@ CONVERSIONS_TO_GRAMS = {
     "echalot": 25,
     "endiv": 100,
     "farin": 0.55,  # g / mL
+    "gouss": 10,
     "huil": 0.91,  # g / mL
     "kg": 1000,
     "kiw": 100,
