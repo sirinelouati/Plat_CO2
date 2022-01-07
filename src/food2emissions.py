@@ -25,7 +25,7 @@ def import_data_from_agribalyse(replace: bool = False) -> pd.DataFrame:
         replace (bool): True to replace data/agribalyse.csv if it already exists. Defaults to False.
 
     Returns:
-        pandas.DataFrame: reshaped dataframeit
+        pandas.DataFrame: reshaped dataframe
     """
 
     if (
