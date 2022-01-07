@@ -69,7 +69,7 @@ def make_output(content: str, verbose: bool = False) -> Dict:
         verbose (bool): True to display any html list of ingredients that cannot be interpreted
 
     Returns:
-        Dict: {"ingredients": Dict, "nb_people": int, "score": float, "url": str}
+        Dict: dictionnary matching each ingredient to its corresponding mass in grams
     """
 
     content = content.split("\n")
@@ -171,7 +171,7 @@ def marmiton_scrapper(recipe_name: str, n: int) -> Dict:
         n (int): number of results to return
 
     Returns:
-        Dict: the key refers to a single recipe, the value is a Dict returned by the function 'make_output'
+        Dict: the key refers to a single recipe, the value is a Dict containing relevant data
     """
 
     options = (
