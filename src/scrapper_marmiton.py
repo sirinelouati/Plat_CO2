@@ -81,7 +81,7 @@ def make_output(content: str, verbose: bool = False) -> Dict:
     missing_quantity = []  # stores the indices where no quantity has been provided
     for i in range(ceil(len(content) / 2)):
         if not re.match(r"\d", content[2 * i - len(missing_quantity)]):
-            missing_quantity.append(2 * i)
+            missing_quantity.append(2 * i - len(missing_quantity))
 
     for i, j in enumerate(missing_quantity):
         content.insert(i + j, "1")  # fills the missing quantities with 1
