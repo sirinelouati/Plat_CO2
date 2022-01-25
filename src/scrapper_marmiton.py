@@ -79,9 +79,11 @@ def make_output(content: str, verbose: bool = False) -> Dict:
     )  # stores the ingredients that are missing from our conversion list
 
     missing_quantity = []  # stores the indices where no quantity has been provided
-    for i in range(ceil(len(content) / 2)):
+    i = 0
+    while 2 * i - len(missing_quantity) < len(content):
         if not re.match(r"\d", content[2 * i - len(missing_quantity)]):
             missing_quantity.append(2 * i - len(missing_quantity))
+        i += 1
 
     for i, j in enumerate(missing_quantity):
         content.insert(i + j, "1")  # fills the missing quantities with 1
